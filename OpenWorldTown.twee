@@ -10,12 +10,30 @@ Open World Town
   (set: $day to 1)
   (set: $time to "Morning")
   (set: $health to 100)
+  (set: $maxHealth to 100)
   (set: $gold to 50)
   (set: $reputation to 0)
+  (set: $influence to 0)
+  (set: $season to "Spring")
+  (set: $year to 1)
   
   (set: $inventory to (a:))
   (set: $questLog to (a:))
   (set: $completedQuests to (a:))
+  
+  (set: $strength to 5)
+  (set: $agility to 5)
+  (set: $intelligence to 5)
+  (set: $defense to 5)
+  (set: $experience to 0)
+  (set: $level to 1)
+  
+  (set: $currentWeapon to "Wooden Sword")
+  (set: $currentArmor to "Leather Jacket")
+  
+  (set: $followers to (a:))
+  (set: $followerCount to 0)
+  (set: $playerArmy to 0)
   
   (set: $bakerMet to false)
   (set: $guardWarned to false)
@@ -28,851 +46,110 @@ Open World Town
   (set: $noteFound to false)
   (set: $irisQuestAccepted to false)
   (set: $treasureItemObtained to false)
+  (set: $inCombat to false)
+  (set: $currentEnemy to "")
+  (set: $currentEnemyHealth to 0)
+  (set: $currentEnemyMaxHealth to 0)
+  (set: $currentEnemyStr to 0)
+  (set: $currentEnemyDef to 0)
   
-  (set: $mainQuest to "Find your purpose in this town")
+  (set: $factionReputation to (dm:
+    "Guards", 0,
+    "Merchants", 0,
+    "Bandits", 0,
+    "Forest Cult", 0,
+    "Town Council", 0
+  ))
+  
+  (set: $mainQuest to "Explore the world and find your destiny")
 }
 
-(go-to: "Town Square")
+(go-to: "World Map")
 
-:: Town Square
-You stand in the Town Square of Thornwick, a modest trading town nestled between rolling hills and an ancient forest. The morning sun casts long shadows across the cobblestone plaza. A fountain splashes gently in the center, and pigeons peck at scattered breadcrumbs.
+:: World Map
+**THORNWICK REGION - Year $year, $season**
 
-**Status:** Day $day | $time | Health: $health% | Gold: $gold gp | Reputation: $reputation
+You stand at the crossroads of destiny. Your legend begins here. Where will you venture?
+
+**Status:** Lvl $level | HP: $health/$maxHealth | Gold: $gold gp | Followers: $followerCount
+**Stats:** STR $strength | AGI $agility | INT $intelligence | DEF $defense | XP: $experience
+
+---
+
+**Major Locations:**
+
+**→ THORNWICK TOWN** — The starting hub with merchants, quests, and NPCs
+[[Visit Thornwick Town]]
+
+**→ BRIGAND CAMP** — Dangerous bandits roam these hills (Combat likely)
+[[Travel to Brigand Camp]]
+
+**→ ANCIENT FOREST** — Dark magic and secrets lurk within (Story quest area)
+[[Enter Ancient Forest]]
+
+**→ NORTHERN OUTPOST** — Guard garrison and military influence
+[[Visit Northern Outpost]]
+
+**→ MERCHANT CARAVAN** — Traveling traders with rare goods
+[[Find Merchant Caravan]]
+
+**→ BANDIT HIDEOUT** — A dangerous stronghold (High Risk / High Reward)
+[[Raid Bandit Hideout]]
+
+**→ ABANDONED RUINS** — Archaeological treasures and mystery
+[[Explore Abandoned Ruins]]
+
+---
 
 **Current Quest:** $mainQuest
 
----
+**Faction Reputation:**
+• Guards: (print: $factionReputation's "Guards")
+• Merchants: (print: $factionReputation's "Merchants")
+• Bandits: (print: $factionReputation's "Bandits")
 
-Where will you venture?
-
-[[→ Market Street]] — The bustling heart of commerce
-[[→ North Gate]] — The forest awaits beyond
-[[→ Back Alley]] — Dark secrets hidden away
-[[→ Town Park]] — Nature's quiet refuge
-[[→ Your House]] — The modest home you've rented
-[[→ Rest at the fountain]] — Recover some health
-
----
+**Active Quests:**
 {
   (if: $questLog's length > 0)[
-    **Active Quests:**
     (for: each _q, ...$questLog)[
       • _q
     ]
   ]
 }
 
-:: Rest at the fountain
-You sit by the fountain, letting the cool mist refresh you. The water feels rejuvenating.
-
-(set: $health to (min: 100, $health + 20))
-(set: $time to "Mid-Morning")
-
-(if: not $coinTaken)[
-  As you rest, you notice something glinting beneath the water...
-  
-  [[Pick it up]] or [[Leave it be]] or [[Return to Town Square]]
-]
-(else)[
-  You relax peacefully by the fountain.
-  
-  [[Return to Town Square]]
-]
-
-:: Pick it up
-You reach into the fountain and retrieve a tarnished silver coin. It feels warm to the touch.
-
-(set: $inventory to $inventory + (a: "Ancient Silver Coin"))
-(set: $gold to $gold + 5)
-(set: $coinTaken to true)
-
-*You've obtained: Ancient Silver Coin and gained 5 gold!*
-
-[[Return to Town Square]]
-
-:: Leave it be
-You decide the coin is best left undisturbed.
-
-(set: $coinTaken to true)
-
-[[Return to Town Square]]
-
-:: Return to Town Square
-(go-to: "Town Square")
-
-:: Market Street
-The vibrant energy of Market Street engulfs you. Merchants line the cobbled street, shouting their wares. Colorful flags flutter overhead. The aroma of fresh bread, spiced leather, and exotic spices fills your senses.
-
-**Locations:**
-• [[Bakery]] — Warmth and fresh bread
-• [[General Shop]] — Tools and mysterious trinkets
-• [[Suspicious Man]] — A hooded figure watching the crowd
-• [[Food Stall]] — Quick meals
-• [[Return to Town Square]]
-
 ---
 
-(set: $time to "Midday")
+[[Rest and Recover]] | [[Check Inventory]] | [[View Character Sheet]]
 
-:: Bakery
-You push open the wooden door. A warm gust of air carries the smell of fresh bread. The baker, a woman named **Elara**, smiles warmly from behind the counter.
+:: Rest and Recover
+You find a safe place to rest. Time passes as you recover your strength.
 
-**Elara says:** "Welcome, wanderer. You look new to our town. Can I help you?"
-
-(if: not $bakerMet)[
-  (set: $bakerMet to true)
-  (set: $reputation to $reputation + 1)
-  (unless: "Learn more about the forest and its mysteries" is in $questLog)[
-    (set: $questLog to $questLog + (a: "Learn more about the forest and its mysteries"))
-  ]
-]
-
-[[Talk about the town]]
-[[Ask about the forest]]
-[[Buy a bread roll (5 gp)]]
-[[Leave the Bakery]]
-
-:: Talk about the town
-"Thornwick is a good place," Elara muses, kneading dough. "Most folks are honest. We get travelers, merchants, adventurers. The guard keeps us safe, though there's been talk of strange happenings in the forest lately."
-
-She leans in conspiratorially. "The old man in the park—**Thorne**—might know more than he lets on. And that suspicious fellow near the square? Never quite trusted him."
-
-[[Ask about the forest]]
-[[Buy a bread roll (5 gp)]]
-[[Leave the Bakery]]
-
-:: Ask about the forest
-Elara's expression darkens. "The forest wasn't always dangerous. But something changed five years ago. Travelers stopped coming from that direction. Strange lights appear some nights."
-
-She glances out nervously. "If you're thinking of going in there, be careful. Take supplies."
-
-(unless: $forestUnlocked)[
-  (set: $forestUnlocked to true)
-]
-
-[[Talk about the town]]
-[[Buy a bread roll (5 gp)]]
-[[Leave the Bakery]]
-
-:: Buy a bread roll (5 gp)
-(if: $gold >= 5)[
-  (if: not ("Fresh Bread Roll" is in $inventory))[
-    (set: $gold to $gold - 5)
-    (set: $inventory to $inventory + (a: "Fresh Bread Roll"))
-  ]
-  (set: $health to (min: 100, $health + 15))
-  *You've purchased a fresh bread roll. Delicious!*
-]
-(else)[
-  "I'm sorry, friend," Elara says gently. "That'll cost you 5 gold, and you don't have enough."
-]
-
-[[Talk about the town]]
-[[Ask about the forest]]
-[[Leave the Bakery]]
-
-:: Leave the Bakery
-You thank Elara and step back out into Market Street.
-
-[[Market Street]]
-
-:: General Shop
-The shop is cramped and cluttered. Shelves overflow with mysterious items. The shopkeeper, **Garrett**, sits behind the counter, polishing an ornate dagger.
-
-He looks up from his work. "Need something? I've got rare finds."
-
-**Garrett's Inventory:**
-• Rope Coil (10 gp) — Useful for climbing
-• Mysterious Map (25 gp) — Shows an "X" in the forest
-• Healing Potion (15 gp) — Restores 30% health
-• Lantern (20 gp) — Essential for dark places
-
-[[Ask about the forest]]
-[[Buy Rope Coil (10 gp)]]
-[[Buy Mysterious Map (25 gp)]]
-[[Buy Healing Potion (15 gp)]]
-[[Buy Lantern (20 gp)]]
-[[Leave the General Shop]]
-
-:: Ask about the forest
-Garrett's weathered face becomes grave. "That forest... it's changed, friend. Five years ago, something happened. A curse, or perhaps something darker."
-
-He slides a worn journal across the counter. "Found this in a crashed wagon. The explorer who wrote it was heading into the forest. Never came back."
-
-(set: $reputation to $reputation + 1)
-
-[[Buy Rope Coil (10 gp)]]
-[[Buy Mysterious Map (25 gp)]]
-[[Buy Healing Potion (15 gp)]]
-[[Buy Lantern (20 gp)]]
-[[Leave the General Shop]]
-
-:: Buy Rope Coil (10 gp)
-(if: $gold >= 10)[
-  (if: not ("Rope Coil" is in $inventory))[
-    (set: $gold to $gold - 10)
-    (set: $inventory to $inventory + (a: "Rope Coil"))
-    Garrett nods approvingly. "Good choice. That'll come in handy."
-  ]
-  (else)[
-    "You already have that item."
-  ]
-]
-(else)[
-  "Not enough gold, friend."
-]
-
-[[Buy Mysterious Map (25 gp)]]
-[[Buy Healing Potion (15 gp)]]
-[[Buy Lantern (20 gp)]]
-[[Leave the General Shop]]
-
-:: Buy Mysterious Map (25 gp)
-(if: $gold >= 25)[
-  (if: not ("Mysterious Map" is in $inventory))[
-    (set: $gold to $gold - 25)
-    (set: $inventory to $inventory + (a: "Mysterious Map"))
-    Garrett grins mysteriously. "That map shows the way to something important. Discover it yourself."
-    (unless: "Follow the map marked with X in the forest" is in $questLog)[
-      (set: $questLog to $questLog + (a: "Follow the map marked with X in the forest"))
-    ]
-  ]
-  (else)[
-    "You already have that map."
-  ]
-]
-(else)[
-  "You need 25 gold for that. Come back when you've earned more."
-]
-
-[[Buy Rope Coil (10 gp)]]
-[[Buy Healing Potion (15 gp)]]
-[[Buy Lantern (20 gp)]]
-[[Leave the General Shop]]
-
-:: Buy Healing Potion (15 gp)
-(if: $gold >= 15)[
-  (if: not ("Healing Potion" is in $inventory))[
-    (set: $gold to $gold - 15)
-    (set: $inventory to $inventory + (a: "Healing Potion"))
-    "Wise purchase," Garrett says. "You never know when you'll need it."
-  ]
-  (else)[
-    "You already have one of those."
-  ]
-]
-(else)[
-  "Need 15 gold for that one."
-]
-
-[[Buy Rope Coil (10 gp)]]
-[[Buy Mysterious Map (25 gp)]]
-[[Buy Lantern (20 gp)]]
-[[Leave the General Shop]]
-
-:: Buy Lantern (20 gp)
-(if: $gold >= 20)[
-  (if: not ("Lantern" is in $inventory))[
-    (set: $gold to $gold - 20)
-    (set: $inventory to $inventory + (a: "Lantern"))
-    "You'll want this if you're going into dark places," Garrett warns seriously.
-  ]
-  (else)[
-    "You already have a lantern."
-  ]
-]
-(else)[
-  "That's 20 gold. You'll have to earn more."
-]
-
-[[Buy Rope Coil (10 gp)]]
-[[Buy Mysterious Map (25 gp)]]
-[[Buy Healing Potion (15 gp)]]
-[[Leave the General Shop]]
-
-:: Leave the General Shop
-You step back out into the busy market street.
-
-[[Market Street]]
-
-:: Suspicious Man
-A tall, cloaked figure leans against a merchant's stall. His face is hidden in shadow. He watches the crowd with the intensity of a hawk.
-
-As you approach, he turns his gaze toward you.
-
-"You're new," he says, his voice like gravel. "I don't recognize you from the town."
-
-(if: not $suspiciousManMet)[
-  (set: $suspiciousManMet to true)
-  (set: $reputation to $reputation + 1)
-]
-
-[[Ask who he is]]
-[[Ask about the forest]]
-[[Walk away]]
-
-:: Ask who he is
-"I am called **Silas**," he replies coolly. "I work in... acquisition. I find things that are lost. I trade in goods that are hard to come by."
-
-He eyes you carefully. "You seem like someone who might be useful. Interested in making some extra gold?"
-
-[[Ask what he wants]]
-[[Accept his proposition]]
-[[Walk away]]
-
-:: Ask about the forest
-Silas's expression hardens. "The forest is not a topic I discuss lightly. But I'll tell you this—there's something valuable in there. Something that could change everything."
-
-He pulls out a small, intricately carved box. "If you can retrieve what's hidden in the forest, I'll pay handsomely."
-
-[[Ask what he wants]]
-[[Accept his proposition]]
-[[Walk away]]
-
-:: Ask what he wants
-"I want you to find something for me," Silas explains. "In the forest, there's an artifact. An ancient stone with strange markings. Bring it to me, and you'll be rewarded."
-
-He looks at you intensely. "100 gold. Do we have a deal?"
-
-[[Accept his proposition]]
-[[Decline politely]]
-[[Walk away]]
-
-:: Accept his proposition
-(if: not $silasQuestAccepted)[
-  (set: $silasQuestAccepted to true)
-  "Excellent," Silas says with a thin smile. "Bring me the ancient stone. I'll be waiting."
-  (unless: "Find the artifact for Silas (Reward: 100 gold)" is in $questLog)[
-    (set: $questLog to $questLog + (a: "Find the artifact for Silas (Reward: 100 gold)"))
-  ]
-  (set: $reputation to $reputation + 1)
-]
-(else)[
-  Silas nods. "Good to see you again. Any luck finding that artifact?"
-]
-
-[[Ask about the forest]]
-[[Walk away]]
-
-:: Decline politely
-"Your loss," Silas shrugs, turning back to the crowd.
-
-[[Walk away]]
-
-:: Walk away
-You step away from Silas, unsettled but intrigued.
-
-[[Market Street]]
-
-:: Food Stall
-A cheerful vendor tends to a small stall laden with fresh pastries, roasted vegetables, and hot soup.
-
-"Fresh food, friend!" she calls out. "Warm your belly and sharpen your mind!"
-
-[[Buy Hearty Soup (8 gp)]] — Restores 20 health
-[[Buy Roasted Vegetables (6 gp)]] — Restores 10 health
-[[Buy Pastry (4 gp)]] — Restores 5 health
-[[Return to Market Street]]
-
-:: Buy Hearty Soup (8 gp)
-(if: $gold >= 8)[
-  (set: $gold to $gold - 8)
-  (set: $health to (min: 100, $health + 20))
-  "Enjoy, friend!"
-]
-(else)[
-  "You don't have enough gold."
-]
-
-[[Buy Roasted Vegetables (6 gp)]]
-[[Buy Pastry (4 gp)]]
-[[Return to Market Street]]
-
-:: Buy Roasted Vegetables (6 gp)
-(if: $gold >= 6)[
-  (set: $gold to $gold - 6)
-  (set: $health to (min: 100, $health + 10))
-  "Here you go!"
-]
-(else)[
-  "Not enough gold, friend."
-]
-
-[[Buy Hearty Soup (8 gp)]]
-[[Buy Pastry (4 gp)]]
-[[Return to Market Street]]
-
-:: Buy Pastry (4 gp)
-(if: $gold >= 4)[
-  (set: $gold to $gold - 4)
-  (set: $health to (min: 100, $health + 5))
-  "Delicious!"
-]
-(else)[
-  "You're a bit short on coin."
-]
-
-[[Buy Hearty Soup (8 gp)]]
-[[Buy Roasted Vegetables (6 gp)]]
-[[Return to Market Street]]
-
-:: Return to Market Street
-(go-to: "Market Street")
-
-:: North Gate
-The North Gate stands imposing and ancient. Beyond it, the forest looms like a living wall—trees so tall they seem to touch the sky, their canopy so thick that even midday light struggles to penetrate.
-
-A grizzled guard in armor stands at attention. His name is **Aldric**, and his weathered face speaks of decades of service.
-
-"Halt," he says, not unkindly. "You look like you're thinking about heading into those woods."
-
-(if: not $guardWarned)[
-  (set: $guardWarned to true)
-  (set: $reputation to $reputation + 1)
-]
-
-[[Ask about the forest]]
-[[Ask why it's dangerous]]
-[[Ask if there's a way in]]
-[[Try to convince him to let you pass]]
-[[Return to Town Square]]
-
-:: Ask about the forest
-Aldric takes a long breath. "The forest wasn't always like this. Five years ago, something changed. An old expedition went in, led by a scholar named **Marcus**. He was looking for ancient ruins. His team never returned."
-
-He gazes into the darkness. "After that, the forest became... hostile. We've sent patrols, but they all come back traumatized."
-
-(unless: "Discover what happened to Marcus and his expedition" is in $questLog)[
-  (set: $questLog to $questLog + (a: "Discover what happened to Marcus and his expedition"))
-]
-
-[[Ask why it's dangerous]]
-[[Ask if there's a way in]]
-[[Try to convince him to let you pass]]
-[[Return to Town Square]]
-
-:: Ask why it's dangerous
-"Beasts," Aldric says flatly. "Not like normal creatures. These things have intelligence and malevolence. We've lost good soldiers."
-
-He looks at you seriously. "The forest has a guardian, or perhaps a curse. Anyone who goes in unprepared doesn't come out."
-
-[[Ask about the forest]]
-[[Ask if there's a way in]]
-[[Try to convince him to let you pass]]
-[[Return to Town Square]]
-
-:: Ask if there's a way in
-"There is one path," Aldric admits reluctantly. "The old forest road. It's overgrown now, but if you follow the stone markers—ancient things carved with symbols—you can find your way deeper in."
-
-He points toward the forest. "Follow the silver stones. They'll take you to the old observation tower."
-
-(unless: "Find the old forest road marked with silver stones" is in $questLog)[
-  (set: $questLog to $questLog + (a: "Find the old forest road marked with silver stones"))
-]
-
-[[Ask about the forest]]
-[[Try to convince him to let you pass]]
-[[Return to Town Square]]
-
-:: Try to convince him to let you pass
-Aldric watches you for a long moment. "You're brave, I'll give you that. Or foolish. Most likely both."
-
-He steps aside slightly. "I can't stop you—the gates aren't locked. But hear this: the forest will test you. Stay true to your purpose, and you might survive."
-
-(set: $reputation to $reputation + 2)
-
-[[Enter the forest]]
-[[Return to Town Square]]
-
-:: Enter the forest
-You push open the heavy gates. The forest looms before you, vast and primordial. The air grows cold as shadows engulf you.
-
-(set: $time to "Afternoon")
-
-[[The Ancient Forest Path]]
-
-:: The Ancient Forest Path
-You step into the forest. Immediately, the sounds of the town fade. The trees are impossibly old, their bark thick and gnarled. Moss and fungus cover rotting logs.
-
-You notice the forest road—barely visible beneath centuries of overgrowth—and the first silver stone, carved with mysterious symbols.
-
-As you walk, you hear sounds. Whispers on the wind. Unseen footsteps. The distant cry of something large.
-
-The forest is testing you.
-
-[[Follow the silver stone markers]] — The safe path
-[[Venture off the path]] — The mysterious route
-[[Return to town]] — Safety awaits
-
-:: Follow the silver stone markers
-(set: $health to (max: 0, $health - 10))
-
-You follow the silver stones, each one leading deeper. After hours of walking, you discover something extraordinary—the old observation tower, covered in vines and crumbling with age. Behind it stands an ancient archway of stone.
-
-**You've found the Gateway to the Old Ruins.**
-
-[[Investigate the archway]]
-[[Rest at the tower]]
-[[Return to town]]
-
-:: Investigate the archway
-You approach the archway cautiously. It's carved with the same symbols as the silver stones, but far more intricate. In the center, there's a lock with no visible keyhole.
-
-Suddenly, you remember the Ancient Silver Coin you found in the fountain. You pull it out, and it glows with the same light as the stones.
-
-(if: "Ancient Silver Coin" is in $inventory)[
-  The coin slides perfectly into a hidden slot. The stone glows brilliantly, and with a deep rumble, the archway opens, revealing a passage into the earth below.
-  
-  **You've unlocked the passage to the Ancient Library!**
-  
-  (unless: "Explore the Ancient Library" is in $questLog)[
-    (set: $questLog to $questLog + (a: "Explore the Ancient Library"))
-  ]
-  (unless: "Opened the Gateway to the Old Ruins" is in $completedQuests)[
-    (set: $completedQuests to $completedQuests + (a: "Opened the Gateway to the Old Ruins"))
-  ]
-  
-  [[Enter the Library]]
-]
-(else)[
-  Without the key, the archway remains sealed. You'll need to find something to unlock it.
-  
-  [[Rest at the tower]]
-  [[Return to town]]
-]
-
-:: Enter the Library
-(set: $time to "Evening")
-(set: $health to (max: 0, $health - 10))
-
-You descend into darkness. Your footsteps echo on ancient stone. The air grows warmer, and a faint blue light emanates from within.
-
-You emerge into a vast underground chamber. Books line endless shelves. At the center stands a stone pedestal with a scroll of incredible age. Behind it, you see a skeleton—the remains of **Marcus**, the missing scholar.
-
-Next to the skeleton is a journal filled with frantic notes about "the curse," "the stone's power," and "the ritual that went wrong."
-
-[[Read Marcus's Journal]]
-[[Take the ancient scroll]]
-[[Pay respects and leave]]
-
-:: Read Marcus's Journal
-You carefully open the journal. The entries tell a tragic story:
-
-*"Day 1: We've found the library!"*
-*"Day 7: We've found an ancient stone of immense power."*
-*"Day 12: Something went wrong. The forest itself has awakened."*
-*"Day 15: I'm the only one left. I can't leave. This journal is my legacy."*
-
-(if: not ("Marcus's Journal" is in $inventory))[
-  (set: $inventory to $inventory + (a: "Marcus's Journal"))
-]
-
-(unless: "Discover the truth about the curse" is in $questLog)[
-  (set: $questLog to $questLog + (a: "Discover the truth about the curse"))
-]
-
-(set: $reputation to $reputation + 3)
-
-[[Take the ancient scroll]]
-[[Pay respects and leave]]
-
-:: Take the ancient scroll
-You carefully lift the scroll from the pedestal. It's warm to the touch, and ancient symbols glow softly on its surface. The scroll describes an ancient ritual—a way to bind the curse and restore the forest to peace.
-
-(if: not ("Scroll of Unbinding" is in $inventory))[
-  (set: $inventory to $inventory + (a: "Scroll of Unbinding"))
-  (set: $treasureItemObtained to true)
-]
-
-(unless: "Perform the Unbinding Ritual to free the forest" is in $questLog)[
-  (set: $questLog to $questLog + (a: "Perform the Unbinding Ritual to free the forest"))
-]
-
-(unless: "Discovered the truth in the Ancient Library" is in $completedQuests)[
-  (set: $completedQuests to $completedQuests + (a: "Discovered the truth in the Ancient Library"))
-]
-
-[[Perform the ritual here]]
-[[Return to town with the knowledge]]
-
-:: Perform the ritual here
-(set: $health to (max: 0, $health - 20))
-
-You unfurl the scroll and begin to read the ancient words aloud. Your voice echoes through the chamber. The stone beneath your feet begins to glow, brighter and brighter.
-
-Reality seems to shimmer. The curse unravels. When the light fades, silence returns.
-
-**The curse is broken. The forest is free.**
-
-(unless: "Performed the Unbinding Ritual" is in $completedQuests)[
-  (set: $completedQuests to $completedQuests + (a: "Performed the Unbinding Ritual"))
-]
-
-(set: $questLog to $questLog - (a: "Perform the Unbinding Ritual to free the forest"))
-(set: $reputation to $reputation + 10)
-
-You've become a hero.
-
-[[Return to town]]
-
-:: Return to town with the knowledge
-The forest path seems easier now, as if it's guiding you back. The ancient corruption feels diminished.
-
-You emerge from the forest as dusk falls, carrying knowledge that could save your town.
-
-(go-to: "Town Square")
-
-:: Pay respects and leave
-You bow respectfully before Marcus's remains, grateful for his sacrifice.
-
-(if: not ("Marcus's Journal" is in $inventory))[
-  (set: $inventory to $inventory + (a: "Marcus's Journal"))
-]
-
-[[Return to town]]
-
-:: Return to town
-(go-to: "Town Square")
-
-:: Rest at the tower
-You make camp at the tower, gathering your strength for what comes next.
-
-(set: $health to (min: 100, $health + 30))
-(set: $time to "Night")
-
-In the morning, you'll decide what to do.
-
-[[Investigate the archway]]
-[[Return to town]]
-
-:: Venture off the path
-(set: $health to (max: 0, $health - 20))
-
-You leave the marked path, following your instincts deeper. The trees close in. You hear whispers and see shapes moving in the darkness.
-
-After what feels like hours, you stumble into a clearing where a massive stone statue stands. At its base, you find something glinting: a key made of crystal.
-
-[[Take the key]]
-[[Leave the clearing and find the path]]
-
-:: Take the key
-(if: not ("Crystal Key" is in $inventory))[
-  (set: $inventory to $inventory + (a: "Crystal Key"))
-  (set: $reputation to $reputation + 2)
-  
-  The moment you touch it, you understand—this key belongs to something ancient.
-]
-(else)[
-  You already have the crystal key.
-]
-
-[[Find the path back]]
-
-:: Find the path back
-(set: $health to (max: 0, $health - 10))
-
-You manage to find your way back to the silver stone markers.
-
-[[Follow the silver stone markers]]
-
-:: Leave the clearing and find the path
-(set: $health to (max: 0, $health - 5))
-
-You carefully back away from the statue and find your way back to the silver stones.
-
-[[Follow the silver stone markers]]
-
-:: Back Alley
-The alley is narrow and dark, squeezed between two old buildings. Water drips from a broken gutter. A door, painted deep green, stands slightly ajar.
-
-[[Investigate the sound]]
-[[Knock on the green door]]
-[[Search the trash]]
-[[Return to Town Square]]
-
-:: Investigate the sound
-(set: $reputation to $reputation + 1)
-
-You follow the dripping sound to a broken pipe. Behind it, you notice a small leather pouch containing 15 gold and a note:
-
-*"For whoever finds this. I'm sorry for what I've done. The curse in the forest... I helped cause it. Forgive me. —M"*
-
-(if: not $noteFound)[
-  (if: not ("Mysterious Note" is in $inventory))[
-    (set: $inventory to $inventory + (a: "Mysterious Note"))
-  ]
-  (set: $gold to $gold + 15)
-  (set: $noteFound to true)
-  
-  (unless: "Discover who left this note and what they meant" is in $questLog)[
-    (set: $questLog to $questLog + (a: "Discover who left this note and what they meant"))
-  ]
-]
-(else)[
-  You've already collected this note.
-]
-
-[[Knock on the green door]]
-[[Search the trash]]
-[[Return to Town Square]]
-
-:: Knock on the green door
-The door opens wider, revealing a dimly lit room filled with curiosities. Behind a cluttered desk sits an elderly woman with sharp eyes.
-
-"Come in, come in," she says. "I've been expecting someone."
-
-She introduces herself as **Iris**, a hedge witch and keeper of forgotten knowledge.
-
-(set: $reputation to $reputation + 2)
-
-[[Ask what she knows about the forest]]
-[[Ask what she is]]
-[[Leave]]
-
-:: Ask what she knows about the forest
-"The forest is cursed by ambition and greed," Iris says solemnly. "A scholar tried to use ancient power. The forest punished him for it. But the curse can be broken."
-
-She slides a small vial across her desk. "This potion will help you see the truth in the forest."
-
-(if: not $irisQuestAccepted)[
-  (if: not ("Iris's Truth Potion" is in $inventory))[
-    (set: $inventory to $inventory + (a: "Iris's Truth Potion"))
-  ]
-  (set: $irisQuestAccepted to true)
-  
-  (unless: "Use Iris's potion to see the truth in the forest" is in $questLog)[
-    (set: $questLog to $questLog + (a: "Use Iris's potion to see the truth in the forest"))
-  ]
-]
-(else)[
-  "I hope my potion has helped you see clearly," Iris says mysteriously.
-]
-
-[[Ask what she is]]
-[[Leave]]
-
-:: Ask what she is
-"I am someone who remembers," Iris says mysteriously. "I remember when the forest was beautiful. I've been waiting for someone brave enough to undo what was done."
-
-(set: $reputation to $reputation + 1)
-
-[[Ask what she knows about the forest]]
-[[Leave]]
-
-:: Leave
-You step back out into the alley.
-
-[[Back Alley]]
-
-:: Search the trash
-(set: $health to (max: 0, $health - 5))
-
-You search through refuse and garbage. In an old crate, you discover a rusted key and a broken compass.
-
-(if: not ("Rusted Key" is in $inventory))[
-  (set: $inventory to $inventory + (a: "Rusted Key"))
-]
-(if: not ("Broken Compass" is in $inventory))[
-  (set: $inventory to $inventory + (a: "Broken Compass"))
-]
-
-[[Knock on the green door]]
-[[Investigate the sound]]
-[[Return to Town Square]]
-
-:: Town Park
-The park is a sanctuary of peace. Ancient oaks provide shade, and benches line the walking paths. A small pond reflects the sky, and wildflowers bloom in carefully tended gardens.
-
-Sitting on a weathered bench, watching the water, is an elderly man. His eyes seem to contain centuries of wisdom.
-
-[[Sit on the bench]]
-[[Talk to the old man]]
-[[Explore the park]]
-[[Return to Town Square]]
-
-:: Sit on the bench
-You sit down quietly, letting the peace of the park wash over you.
-
-(set: $health to (min: 100, $health + 15))
-
-After a while, the old man speaks. "It's a good place for thinking, isn't it?"
-
-[[Talk to the old man]]
-
-:: Talk to the old man
-The old man introduces himself as **Thorne**, and he claims to be over a hundred years old. His mind is sharp.
-
-"I remember when the forest was young," he says. "When it was beautiful and safe. I think something in its heart has been corrupted, and I think you might be the one to fix it."
-
-(if: not $oldManMet)[
-  (set: $oldManMet to true)
-  (set: $reputation to $reputation + 2)
-  
-  (if: not ("Thorne's Token" is in $inventory))[
-    (set: $inventory to $inventory + (a: "Thorne's Token"))
-  ]
-]
-
-[[Ask about the forest's history]]
-[[Ask how he knows about you]]
-[[Return to Town Square]]
-
-:: Ask about the forest's history
-"Five hundred years ago," Thorne begins, "the forest was a paradise. Then came the ambition of men. Scholars and mages tried to unlock its secrets. They found an ancient artifact of great power."
-
-He pauses, lost in memory. "The forest rejected them. It awakened defenses. But the corruption spread, year by year, until five years ago, when a new attempt was made."
-
-[[Ask how he knows about you]]
-[[Return to Town Square]]
-
-:: Ask how he knows about you
-Thorne smiles. "I know because I've lived long enough to recognize the signs. When someone new arrives in town, I can feel it. When that someone carries the weight of destiny, I can see it in their eyes. You're here for a reason."
-
-[[Ask about the forest's history]]
-[[Return to Town Square]]
-
-:: Explore the park
-You wander through the park's quiet paths, finding small surprises—a hidden fountain, a grove of ancient trees, a stone monument covered in names.
-
-The names are those of people lost to the forest over centuries.
-
-(unless: "Understand why so many have been lost to the forest" is in $questLog)[
-  (set: $questLog to $questLog + (a: "Understand why so many have been lost to the forest"))
-]
-
-[[Return to Town Square]]
-
-:: Your House
-Your small rented home is modest but comfortable. A window overlooks the town.
-
-(set: $houseExplored to true)
-
-What will you do here?
-
-[[Look out the window]]
-[[Rest on the bed]]
-[[Examine your belongings]]
-[[Leave]]
-
-:: Look out the window
-You gaze out over the town of Thornwick, watching the sunset. From here, you can see the market, the north gate, and in the distance, the dark mass of the forest.
-
-[[Rest on the bed]]
-[[Leave]]
-
-:: Rest on the bed
-(set: $health to (min: 100, $health + 25))
-(set: $time to "Morning")
 (set: $day to $day + 1)
+(set: $health to $maxHealth)
+(set: $time to "Morning")
 
-You sleep deeply and wake refreshed. A new day awaits.
+(if: $day % 30 is 0)[
+  (set: $season to (if: $season is "Spring" then "Summer" else if: $season is "Summer" then "Fall" else if: $season is "Fall" then "Winter" else "Spring"))
+  (if: $season is "Spring")[
+    (set: $year to $year + 1)
+  ]
+]
 
-[[Look out the window]]
-[[Leave]]
+You wake up refreshed. The day is new.
 
-:: Examine your belongings
-You organize your inventory. Current items:
+[[Return to World Map]]
 
+:: Return to World Map
+(go-to: "World Map")
+
+:: Check Inventory
+**YOUR INVENTORY**
+
+**Weapons & Armor:**
+• Current Weapon: $currentWeapon
+• Current Armor: $currentArmor
+
+**Items:**
 {
   (if: $inventory's length > 0)[
     (for: each _item, ...$inventory)[
@@ -880,31 +157,1045 @@ You organize your inventory. Current items:
     ]
   ]
   (else)[
-    (You haven't collected much yet. There's a whole world to explore.)
+    (No items yet)
   ]
 }
 
-Gold: $gold gp
-Health: $health%
-Reputation: $reputation
+**Resources:**
+• Gold: $gold gp
+• Followers: $followerCount
 
-[[Look out the window]]
-[[Rest on the bed]]
-[[Leave]]
+[[Return to World Map]]
 
-:: Leave
-(go-to: "Town Square")
+:: View Character Sheet
+**CHARACTER SHEET**
+
+**Name:** $playerName
+**Level:** $level
+**Experience:** $experience / (2000 * $level)
 
 ---
 
-** LEGEND AND LORE **
+**ATTRIBUTES:**
+• Strength: $strength (Physical damage)
+• Agility: $agility (Dodge chance, attack speed)
+• Intelligence: $intelligence (Persuasion, strategy)
+• Defense: $defense (Damage reduction)
 
-*Five years ago, something changed in the forest. A scholar named Marcus led an expedition to find ancient ruins and a legendary artifact of immense power. The expedition disappeared, and the forest became cursed.*
+---
 
-*Now, whispers speak of moving shadows and creatures that shouldn't exist. The townspeople fear the forest. The guard will not venture in.*
+**COMBAT STATS:**
+• Health: $health / $maxHealth
+• Weapon: $currentWeapon
+• Armor: $currentArmor
 
-*But you have arrived. Perhaps you are the one meant to break the curse.*
+---
 
-*Will you be a hero? A treasure hunter? A savior? Or will you become another lost soul in the dark woods?*
+**FOLLOWERS:** $followerCount
 
-*The choice is yours.*
+(if: $followerCount > 0)[
+  (for: each _follower, ...$followers)[
+    • _follower
+  ]
+]
+
+---
+
+**COMPLETED QUESTS:**
+{
+  (if: $completedQuests's length > 0)[
+    (for: each _quest, ...$completedQuests)[
+      • _quest
+    ]
+  ]
+  (else)[
+    (None yet)
+  ]
+}
+
+[[Return to World Map]]
+
+:: Visit Thornwick Town
+You enter the bustling town of Thornwick. Merchants, guards, and townsfolk go about their daily business.
+
+**What will you do?**
+
+[[Visit the Bakery]]
+[[Visit the General Shop]]
+[[Visit the Tavern]]
+[[Meet the Town Guard Captain]]
+[[Return to World Map]]
+
+:: Visit the Bakery
+You push open the wooden door. A warm gust of air carries the smell of fresh bread. **Elara**, the baker, smiles warmly.
+
+**Elara:** "Welcome! Need anything today?"
+
+(if: not $bakerMet)[
+  (set: $bakerMet to true)
+  (set: $reputation to $reputation + 1)
+]
+
+**Bakery Menu:**
+[[Buy Bread (3 gp)]] — Restores 15 HP
+[[Buy Apple Pie (5 gp)]] — Restores 25 HP
+[[Ask about the area]]
+[[Return to Thornwick Town]]
+
+:: Buy Bread (3 gp)
+(if: $gold >= 3)[
+  (set: $gold to $gold - 3)
+  (set: $health to (min: $maxHealth, $health + 15))
+  *You eat fresh bread. Delicious!*
+]
+(else)[
+  "I'm sorry, friend. You don't have enough gold."
+]
+
+[[Visit the Bakery]]
+
+:: Buy Apple Pie (5 gp)
+(if: $gold >= 5)[
+  (set: $gold to $gold - 5)
+  (set: $health to (min: $maxHealth, $health + 25))
+  *You enjoy a delicious apple pie!*
+]
+(else)[
+  "You need 5 gold for that."
+]
+
+[[Visit the Bakery]]
+
+:: Ask about the area
+"There's a lot happening in the region," Elara says thoughtfully. "Bandits have been attacking merchants. The guards are overwhelmed. And there's talk of ancient magic stirring in the forest."
+
+[[Visit the Bakery]]
+
+:: Visit the General Shop
+You enter a cramped shop filled with weapons, armor, and supplies. **Garrett**, the grizzled shopkeeper, looks up from his work.
+
+**Garrett:** "Looking for equipment?"
+
+**Available for Purchase:**
+
+[[Buy Iron Sword (30 gp)]] — +2 Strength
+[[Buy Steel Armor (40 gp)]] — +3 Defense
+[[Buy Health Potion (10 gp)]] — Full HP restore
+[[Buy Shield (20 gp)]] — +2 Defense
+[[Sell Items]]
+[[Return to Thornwick Town]]
+
+:: Buy Iron Sword (30 gp)
+(if: $gold >= 30)[
+  (set: $gold to $gold - 30)
+  (set: $currentWeapon to "Iron Sword")
+  (set: $strength to $strength + 2)
+  Garrett nods approvingly. "Good choice."
+]
+(else)[
+  "You need 30 gold for that blade."
+]
+
+[[Visit the General Shop]]
+
+:: Buy Steel Armor (40 gp)
+(if: $gold >= 40)[
+  (set: $gold to $gold - 40)
+  (set: $currentArmor to "Steel Armor")
+  (set: $defense to $defense + 3)
+  "That'll protect you well," Garrett says.
+]
+(else)[
+  "You need 40 gold for that armor."
+]
+
+[[Visit the General Shop]]
+
+:: Buy Health Potion (10 gp)
+(if: $gold >= 10)[
+  (set: $gold to $gold - 10)
+  (if: not ("Health Potion" is in $inventory))[
+    (set: $inventory to $inventory + (a: "Health Potion"))
+  ]
+  "Good for emergencies," Garrett says.
+]
+(else)[
+  "You need 10 gold for that."
+]
+
+[[Visit the General Shop]]
+
+:: Buy Shield (20 gp)
+(if: $gold >= 20)[
+  (set: $gold to $gold - 20)
+  (set: $defense to $defense + 2)
+  (if: not ("Shield" is in $inventory))[
+    (set: $inventory to $inventory + (a: "Shield"))
+  ]
+  "Strong and reliable," Garrett says.
+]
+(else)[
+  "You need 20 gold for that."
+]
+
+[[Visit the General Shop]]
+
+:: Sell Items
+"What do you want to sell?" Garrett asks.
+
+(if: $inventory's length > 0)[
+  You can sell items from your inventory for 50% their value.
+  
+  (for: each _item, ...$inventory)[
+    [[Sell _item]]
+  ]
+]
+(else)[
+  You have nothing to sell.
+]
+
+[[Visit the General Shop]]
+
+:: Visit the Tavern
+You enter a lively tavern filled with townsfolk, merchants, and sellswords. **The Barkeep** wipes a glass.
+
+**Barkeep:** "What can I get you?"
+
+**Tavern Services:**
+
+[[Drink Ale (2 gp)]] — Slight boost to Strength temporarily
+[[Hire Sellsword (15 gp)]] — Add a fighter to your army
+[[Listen for Rumors]] — Gather intelligence
+[[Challenge Someone to Fight]] — Test your combat skills
+[[Return to Thornwick Town]]
+
+:: Drink Ale (2 gp)
+(if: $gold >= 2)[
+  (set: $gold to $gold - 2)
+  (set: $strength to $strength + 1)
+  You drink a strong ale. You feel invigorated!
+]
+(else)[
+  You can't afford it.
+]
+
+[[Visit the Tavern]]
+
+:: Hire Sellsword (15 gp)
+(if: $gold >= 15)[
+  (set: $gold to $gold - 15)
+  (set: $followers to $followers + (a: "Sellsword"))
+  (set: $followerCount to $followerCount + 1)
+  (set: $playerArmy to $playerArmy + 1)
+  A grizzled mercenary nods. "I'll fight for you."
+]
+(else)[
+  "You don't have enough gold to hire anyone."
+]
+
+[[Visit the Tavern]]
+
+:: Listen for Rumors
+"Word is, there's a powerful artifact hidden in the ancient forest," the barkeep says. "The bandits are after it too. And I heard the guards are recruiting for an expedition."
+
+(unless: "Forest Artifact - Compete with Bandits" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Forest Artifact - Compete with Bandits for an ancient relic"))
+]
+
+[[Visit the Tavern]]
+
+:: Challenge Someone to Fight
+A drunk patron stumbles toward you, fists raised.
+
+"You look tough! Let's see what you're made of!"
+
+[[Fight the Drunk]] | [[Walk Away]]
+
+:: Fight the Drunk
+(set: $inCombat to true)
+(set: $currentEnemy to "Drunk Patron")
+(set: $currentEnemyHealth to 30)
+(set: $currentEnemyMaxHealth to 30)
+(set: $currentEnemyStr to 3)
+(set: $currentEnemyDef to 2)
+
+(go-to: "Combat System")
+
+:: Walk Away
+"Coward!" the drunk yells. You ignore him and return to the tavern.
+
+[[Visit the Tavern]]
+
+:: Meet the Town Guard Captain
+You approach the guard barracks. A stern woman in full plate armor stands at attention. This is **Captain Thalia**, commander of the town guard.
+
+**Captain Thalia:** "I've heard about you. Interested in joining our cause?"
+
+**Guard Faction Options:**
+
+[[Join the Guard (Gain Authority)]]
+[[Ask about Guard Contracts]]
+[[Ask about threats in the region]]
+[[Return to Thornwick Town]]
+
+:: Join the Guard (Gain Authority)
+(set: $factionReputation to $factionReputation.put("Guards", (print: $factionReputation's "Guards") + 10))
+(set: $reputation to $reputation + 5)
+(set: $influence to $influence + 5)
+
+"Welcome to the guard," Captain Thalia says. "You can count on our support."
+
+You gain +10 Guard faction reputation!
+
+[[Meet the Town Guard Captain]]
+
+:: Ask about Guard Contracts
+"We need mercenary work done," Captain Thalia explains. "Bandit raids, monster hunts, escort missions. Interested?"
+
+(unless: "Guard Contracts - Earn Gold and Reputation" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Guard Contracts - Earn Gold and Reputation by completing guard missions"))
+]
+
+[[Meet the Town Guard Captain]]
+
+:: Ask about threats in the region
+"Bandits control the hills to the east," Thalia says grimly. "We don't have the manpower to stop them. There's also something stirring in the old forest—magic, ancient magic."
+
+She leans forward. "If you could help, the town would be grateful."
+
+[[Meet the Town Guard Captain]]
+
+:: Travel to Brigand Camp
+You travel through dangerous terrain. After hours of walking, you spot smoke rising from a camp.
+
+**Brigand Camp - Armed Encampment**
+
+You see 5-10 rough-looking bandits around a fire. Some are gambling, others are drinking. This is dangerous.
+
+**What do you do?**
+
+[[Sneak into the camp]] — High risk, high reward
+[[Challenge them openly]] — Direct combat
+[[Negotiate/Speak with them]] — Diplomacy
+[[Scout and leave]] — Gather information
+[[Return to World Map]]
+
+:: Sneak into the camp
+You move carefully through the shadows. You spot a chest!
+
+**Perception Check:** 
+(if: $agility >= 7)[
+  You successfully avoid detection and grab treasure!
+  
+  (set: $gold to $gold + 50)
+  (set: $experience to $experience + 100)
+  (set: $inventory to $inventory + (a: "Stolen Bandit Supplies"))
+  
+  You escape undetected, richer and wiser!
+]
+(else)[
+  A bandit spots you! Combat incoming!
+  
+  (set: $inCombat to true)
+  (set: $currentEnemy to "Bandit Scout")
+  (set: $currentEnemyHealth to 40)
+  (set: $currentEnemyMaxHealth to 40)
+  (set: $currentEnemyStr to 6)
+  (set: $currentEnemyDef to 3)
+  
+  (go-to: "Combat System")
+]
+
+:: Challenge them openly
+You stride into the camp with your weapon drawn. All eyes turn to you.
+
+"Any of you want a fight?" you shout.
+
+The bandit leader, a scarred woman named **Kess**, stands up slowly. She draws her blade.
+
+"Bold little warrior. Let's see how tough you are!"
+
+(set: $inCombat to true)
+(set: $currentEnemy to "Bandit Leader Kess")
+(set: $currentEnemyHealth to 60)
+(set: $currentEnemyMaxHealth to 60)
+(set: $currentEnemyStr to 8)
+(set: $currentEnemyDef to 5)
+
+(go-to: "Combat System")
+
+:: Negotiate/Speak with them
+You approach the fire with your hands raised. The bandits draw weapons, but the leader stops them.
+
+"What brings you to our camp, wanderer?" asks **Kess**, the scarred bandit leader.
+
+**Choose your approach:**
+
+[[Persuade them to join your army]] — Charisma-based
+[[Offer to help them raid merchants]] — Align with bandits
+[[Ask for information]] — Gather intelligence
+[[Insult them (START COMBAT)]] — Provoke them
+[[Leave peacefully]]
+
+:: Persuade them to join your army
+(if: $intelligence >= 6)[
+  "Listen," you say, "I'm building something bigger than bandit raids. Join me, and we'll have real power."
+  
+  Kess considers this. "Interesting. I'll follow you. You've got potential."
+  
+  (set: $followers to $followers + (a: "Bandit Leader Kess"))
+  (set: $followerCount to $followerCount + 1)
+  (set: $playerArmy to $playerArmy + 5)
+  (set: $factionReputation to $factionReputation.put("Bandits", (print: $factionReputation's "Bandits") + 15))
+  (set: $experience to $experience + 200)
+  
+  Kess and her elite fighters join your cause! +5 fighters!
+]
+(else)[
+  "No chance," Kess says. "You're not strong enough to lead us."
+  
+  You need more intelligence or strength to convince them.
+]
+
+[[Brigand Camp - Armed Encampment]]
+
+:: Offer to help them raid merchants
+"The merchant caravan passes through tomorrow," you offer. "Help me raid it, we split the profits 50/50."
+
+Kess grins. "Now that's a deal I like. Let's work together."
+
+(set: $factionReputation to $factionReputation.put("Bandits", (print: $factionReputation's "Bandits") + 10))
+(set: $questLog to $questLog + (a: "Raid Merchant Caravan with Bandits"))
+
+[[Brigand Camp - Armed Encampment]]
+
+:: Ask for information
+"I'm looking for information," you say. "What's happening in the region?"
+
+Kess leans back. "The forest is stirring with dark magic. Ancient artifact hidden there. Guards are too weak to stop much. And there's a wealthy merchant caravan coming through in two days—fat with goods."
+
+(unless: "Merchant Caravan incoming - 2 days" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Merchant Caravan passing through - Raid or Protect opportunity"))
+]
+
+[[Brigand Camp - Armed Encampment]]
+
+:: Insult them (START COMBAT)
+"You're all pathetic!" you shout. "Weak bandits hiding in the hills!"
+
+Kess's eyes go cold. "You just made a big mistake."
+
+(set: $inCombat to true)
+(set: $currentEnemy to "Bandit Leader Kess")
+(set: $currentEnemyHealth to 60)
+(set: $currentEnemyMaxHealth to 60)
+(set: $currentEnemyStr to 8)
+(set: $currentEnemyDef to 5)
+
+(go-to: "Combat System")
+
+:: Leave peacefully
+You slowly back away from the camp and head back toward the main road.
+
+[[Travel to Brigand Camp]]
+
+:: Combat System
+{
+  (if: not $inCombat)[
+    (go-to: "World Map")
+  ]
+}
+
+**⚔️ COMBAT STARTED ⚔️**
+
+**Enemy:** $currentEnemy
+**Enemy HP:** $currentEnemyHealth / $currentEnemyMaxHealth
+
+**Your HP:** $health / $maxHealth
+**Your Weapon:** $currentWeapon (+$strength damage)
+**Your Armor:** $currentArmor (+$defense reduction)
+
+---
+
+**COMBAT OPTIONS:**
+
+[[Attack]] — Basic attack, deal STR damage
+[[Power Attack]] — Higher damage, risky
+[[Defend]] — Reduce damage this turn
+[[Use Health Potion]] — Restore HP (if available)
+[[Flee]] — Attempt to escape
+
+:: Attack
+(set: $damageDealt to $strength + (random: 1, 5))
+
+{
+  (if: random: 1, 10 >= 6)[
+    Enemy dodges! Low damage.
+    (set: $damageDealt to (round: $damageDealt / 2))
+  ]
+}
+
+You swing your weapon! You deal $damageDealt damage!
+
+(set: $currentEnemyHealth to (max: 0, $currentEnemyHealth - $damageDealt))
+
+**Enemy counter-attack!**
+
+(set: $enemyDamage to $currentEnemyStr - $defense + (random: 1, 4))
+
+{
+  (if: $enemyDamage < 1)[
+    (set: $enemyDamage to 1)
+  ]
+}
+
+(if: random: 1, 10 >= 5)[
+  You block! Reduced damage.
+  (set: $enemyDamage to (round: $enemyDamage / 2))
+]
+
+The enemy strikes back! You take $enemyDamage damage!
+
+(set: $health to (max: 0, $health - $enemyDamage))
+
+{
+  (if: $currentEnemyHealth <= 0)[
+    **VICTORY!**
+    
+    (set: $experience to $experience + 150)
+    (set: $gold to $gold + 40)
+    (set: $inCombat to false)
+    
+    You defeated $currentEnemy! Gained 150 XP and 40 gold!
+    
+    (if: $experience >= 2000 * $level)[
+      **LEVEL UP!**
+      (set: $level to $level + 1)
+      (set: $experience to $experience - (2000 * ($level - 1)))
+      (set: $maxHealth to $maxHealth + 20)
+      (set: $health to $maxHealth)
+      (set: $strength to $strength + 1)
+      (set: $defense to $defense + 1)
+    ]
+    
+    [[Loot Enemy]] | [[Return to World Map]]
+  ]
+  (elseif: $health <= 0)[
+    **DEFEAT!**
+    
+    (set: $health to 50)
+    (set: $inCombat to false)
+    
+    You were defeated! You wake up at a safe location, battered and bruised.
+    
+    [[Return to World Map]]
+  ]
+}
+
+[[Continue Combat]]
+
+:: Power Attack
+(set: $damageDealt to ($strength * 2) + (random: 1, 8))
+
+"ARGHHHH!" You unleash a powerful attack!
+
+You deal $damageDealt damage!
+
+(set: $currentEnemyHealth to (max: 0, $currentEnemyHealth - $damageDealt))
+
+**But the enemy exploits your opening!**
+
+(set: $enemyDamage to ($currentEnemyStr + 5) - $defense + (random: 1, 6))
+
+You take $enemyDamage damage!
+
+(set: $health to (max: 0, $health - $enemyDamage))
+
+{
+  (if: $currentEnemyHealth <= 0)[
+    **VICTORY!**
+    
+    (set: $experience to $experience + 150)
+    (set: $gold to $gold + 40)
+    (set: $inCombat to false)
+    
+    [[Loot Enemy]] | [[Return to World Map]]
+  ]
+  (elseif: $health <= 0)[
+    **DEFEAT!**
+    (set: $health to 50)
+    (set: $inCombat to false)
+    
+    [[Return to World Map]]
+  ]
+}
+
+[[Continue Combat]]
+
+:: Defend
+"I will not fall here!" You brace for impact.
+
+(set: $enemyDamage to ($currentEnemyStr - ($defense * 2)) + (random: 1, 2))
+
+{
+  (if: $enemyDamage < 1)[
+    (set: $enemyDamage to 1)
+  ]
+}
+
+The enemy's attack glances off your armor! You take only $enemyDamage damage!
+
+(set: $health to (max: 0, $health - $enemyDamage))
+
+(if: $health <= 0)[
+  **DEFEAT!**
+  (set: $health to 50)
+  (set: $inCombat to false)
+  
+  [[Return to World Map]]
+]
+
+[[Continue Combat]]
+
+:: Use Health Potion
+(if: "Health Potion" is in $inventory)[
+  You drink a health potion!
+  (set: $health to $maxHealth)
+  (set: $inventory to $inventory - (a: "Health Potion"))
+  
+  The enemy attacks while you're vulnerable!
+  
+  (set: $enemyDamage to $currentEnemyStr - ($defense / 2) + (random: 1, 4))
+  (set: $health to (max: 0, $health - $enemyDamage))
+  
+  [[Continue Combat]]
+]
+(else)[
+  You don't have any health potions!
+  
+  [[Continue Combat]]
+]
+
+:: Flee
+(if: $agility >= 5)[
+  You quickly turn and run! Your speed allows you to escape!
+  
+  (set: $inCombat to false)
+  [[Return to World Map]]
+]
+(else)[
+  You try to flee, but the enemy catches you!
+  
+  (set: $enemyDamage to $currentEnemyStr - ($defense / 2) + (random: 1, 5))
+  (set: $health to (max: 0, $health - $enemyDamage))
+  
+  [[Continue Combat]]
+]
+
+:: Continue Combat
+(go-to: "Combat System")
+
+:: Loot Enemy
+You search the defeated enemy's corpse and find valuable items!
+
+(set: $gold to $gold + (random: 20, 50))
+(set: $experience to $experience + (random: 50, 150))
+
+You gain additional treasure!
+
+[[Return to World Map]]
+
+:: Enter Ancient Forest
+You step into the ancient forest. The air grows cold, and ancient trees tower overhead. This is the place of legend.
+
+**Deep within, you sense multiple paths:**
+
+[[Follow the silver stone markers]] — Safe, mysterious path
+[[Venture off into the shadows]] — Dangerous, treasure-rich
+[[Search for the artifact]] — Main quest
+[[Return to World Map]]
+
+:: Follow the silver stone markers
+The ancient stone markers glow faintly. You follow them deeper into the forest.
+
+After hours of travel, you reach **the Archway of Ruin**.
+
+"This is it," you whisper. "The gateway to the ancient library."
+
+(unless: "Opened the Gateway to the Old Ruins" is in $completedQuests)[
+  (set: $completedQuests to $completedQuests + (a: "Opened the Gateway to the Old Ruins"))
+]
+
+You need the **Ancient Silver Coin** to unlock this. Do you have it?
+
+(if: "Ancient Silver Coin" is in $inventory)[
+  The coin glows! The archway opens!
+  
+  [[Enter the Ancient Library]]
+]
+(else)[
+  The archway remains sealed. You need to find the key.
+  
+  [[Return to World Map]]
+]
+
+:: Enter the Ancient Library
+You descend into a vast underground chamber filled with ancient books and scrolls. At the center stands a stone pedestal with a glowing artifact.
+
+**The Scroll of Unbinding rests here.**
+
+This is the artifact everyone seeks. Its power could change the fate of the entire region.
+
+[[Take the Scroll]] — Gain immense power
+[[Leave it]] — Abandon the quest
+[[Examine it carefully]] — Learn its secrets
+
+:: Take the Scroll
+(set: $inventory to $inventory + (a: "Scroll of Unbinding"))
+(set: $experience to $experience + 500)
+(set: $reputation to $reputation + 20)
+
+You've obtained the legendary **Scroll of Unbinding**!
+
+This artifact grants you +5 to all stats and opens new quest lines!
+
+(set: $strength to $strength + 5)
+(set: $intelligence to $intelligence + 5)
+(set: $defense to $defense + 5)
+
+(unless: "Obtain the Scroll of Unbinding - Ancient Artifact" is in $completedQuests)[
+  (set: $completedQuests to $completedQuests + (a: "Obtain the Scroll of Unbinding - Ancient Artifact"))
+]
+
+[[Return to World Map]]
+
+:: Leave it
+You respect the ancient magic and leave the scroll undisturbed.
+
+[[Return to World Map]]
+
+:: Examine it carefully
+You study the scroll's inscriptions. Ancient runes reveal themselves to you.
+
+(set: $intelligence to $intelligence + 2)
+
+You understand that this artifact can **unbind a curse** or **grant dominion over the forest**.
+
+(unless: "Learned the true power of the Scroll" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Decide the fate of the Scroll: Break the curse or gain forest power"))
+]
+
+[[Take the Scroll]]
+[[Leave it]]
+[[Return to World Map]]
+
+:: Visit Northern Outpost
+You arrive at a fortified guard outpost. Soldiers train in the courtyard. **Commander Aldric** stands at attention.
+
+**Commander Aldric:** "Welcome, wanderer. What brings you here?"
+
+**Guard Outpost Options:**
+
+[[Request a Guard Contract]] — Bounty hunting missions
+[[Train with the Guard]] — Improve your stats
+[[Ask about the Bandits]] — Intelligence gathering
+[[Volunteer for War]] — Massive military campaign
+[[Return to World Map]]
+
+:: Request a Guard Contract
+"We have several contracts available," Aldric says, pulling out a scroll.
+
+**Available Contracts:**
+
+1. **Bandit Extermination** - Slay 10 bandits (Reward: 150 gold, +20 Guard reputation)
+2. **Rescue Merchants** - Escort a caravan safely (Reward: 200 gold, +15 reputation)
+3. **Monster Hunt** - Slay a forest beast (Reward: 250 gold, +25 reputation)
+
+Which contract interests you?
+
+[[Accept Bandit Extermination]] | [[Accept Rescue Merchants]] | [[Accept Monster Hunt]]
+
+:: Accept Bandit Extermination
+You accept the contract. You need to defeat 10 bandits.
+
+(set: $questLog to $questLog + (a: "Bandit Extermination Contract - Kill 10 bandits"))
+
+This will require multiple combat encounters. Each victory brings you closer to the reward.
+
+[[Return to World Map]]
+
+:: Accept Rescue Merchants
+"A merchant caravan is in danger from bandits," Aldric explains. "Ensure they reach the city safely."
+
+(set: $questLog to $questLog + (a: "Rescue Merchant Caravan - Protect them from bandits"))
+
+[[Return to World Map]]
+
+:: Accept Monster Hunt
+"A terrible beast lurks in the deep forest," Aldric says gravely. "Slay it, and you'll earn significant reward and honor."
+
+(set: $questLog to $questLog + (a: "Monster Hunt - Defeat the forest beast"))
+
+[[Return to World Map]]
+
+:: Train with the Guard
+You spend days training with the guard soldiers. Your skills improve significantly!
+
+(set: $day to $day + 5)
+(set: $strength to $strength + 2)
+(set: $defense to $defense + 2)
+(set: $agility to $agility + 1)
+
+You feel stronger and more skilled!
+
+[[Visit Northern Outpost]]
+
+:: Ask about the Bandits
+"The bandits are growing bolder," Aldric says with concern. "Their leader is a woman named Kess. She's gathering followers, possibly planning something big."
+
+(set: $questLog to $questLog + (a: "Investigate Bandit Leader Kess - Determine her intentions"))
+
+[[Visit Northern Outpost]]
+
+:: Volunteer for War
+"You wish to volunteer for war?" Aldric's eyes light up.
+
+"Excellent! We're preparing for a major campaign against the bandits. If we gather enough soldiers and fighters, we can end this threat once and for all!"
+
+(set: $questLog to $questLog + (a: "War Campaign - Recruit fighters and lead an army against the bandits"))
+(set: $influence to $influence + 10)
+
+[[Visit Northern Outpost]]
+
+:: Find Merchant Caravan
+You travel the roads until you spot a large caravan of merchants.
+
+**Merchant Caravan - Business Opportunity**
+
+You approach the merchants cautiously. A wealthy-looking merchant named **Yoren** greets you.
+
+**Yoren:** "Greetings, wanderer. Are you friend or foe?"
+
+**What do you do?**
+
+[[Offer Protection]] — Guard the caravan for profit
+[[Propose Trade]] — Buy and sell goods
+[[Rob them (COMBAT)]] — Steal their goods
+[[Chat and gather news]] — Diplomacy
+[[Return to World Map]]
+
+:: Offer Protection
+"I can ensure your caravan reaches the city safely," you offer.
+
+Yoren smiles. "Excellent! We'll pay 100 gold per successful delivery. And any bandits you defeat, we'll buy loot from you at fair prices."
+
+(set: $questLog to $questLog + (a: "Protect Merchant Caravan - Earn 100 gold per delivery"))
+
+[[Find Merchant Caravan]]
+
+:: Propose Trade
+"I'm interested in buying and selling goods," you say.
+
+Yoren nods. "We deal in rare items, weapons, armor. Buy low, sell high. Standard merchant business."
+
+You gain access to rare merchant goods!
+
+[[Find Merchant Caravan]]
+
+:: Rob them (COMBAT)
+You draw your weapon. "Your goods are mine now!"
+
+The merchants shout for guards!
+
+(set: $inCombat to true)
+(set: $currentEnemy to "Merchant Guard Captain")
+(set: $currentEnemyHealth to 50)
+(set: $currentEnemyMaxHealth to 50)
+(set: $currentEnemyStr to 7)
+(set: $currentEnemyDef to 4)
+
+(go-to: "Combat System")
+
+:: Chat and gather news
+"Tell me what you've heard in your travels," you request.
+
+Yoren leans close. "The forest grows darker each day. The bandits grow bolder. And rumors speak of an ancient artifact of immense power, hidden in a forgotten library."
+
+"We're also hearing strange things—cults, dark rituals, and whispers of a forest curse being lifted or deepened depending on someone's choice."
+
+(set: $questLog to $questLog + (a: "Investigate the forest curse and the artifact"))
+
+[[Find Merchant Caravan]]
+
+:: Raid Bandit Hideout
+You march toward the bandit stronghold. This is a major operation. You'll need significant force.
+
+(if: $playerArmy >= 5)[
+  **SIEGE BEGINS**
+  
+  You have $playerArmy followers. This is enough for a proper siege!
+  
+  [[Battle the Bandits]] | [[Attempt Negotiation]]
+]
+(else)[
+  You don't have enough followers for a siege. You need at least 5 soldiers.
+  
+  Return and recruit more followers from the tavern or convince NPC allies to join you.
+  
+  [[Return to World Map]]
+]
+
+:: Battle the Bandits
+**⚔️ MAJOR BATTLE ⚔️**
+
+Your army clashes with the bandit stronghold. The battle rages!
+
+(set: $battleVictory to random: 1, 20)
+
+{
+  (if: $battleVictory >= 12)[
+    **YOUR ARMY WINS!**
+    
+    After fierce combat, your forces overwhelm the bandits. The stronghold falls!
+    
+    (set: $gold to $gold + 500)
+    (set: $experience to $experience + 1000)
+    (set: $reputation to $reputation + 50)
+    (set: $influence to $influence + 20)
+    (set: $factionReputation to $factionReputation.put("Guards", (print: $factionReputation's "Guards") + 30))
+    
+    (unless: "Defeated the Bandit Stronghold" is in $completedQuests)[
+      (set: $completedQuests to $completedQuests + (a: "Defeated the Bandit Stronghold - Established order in the region"))
+    ]
+    
+    You are now a legendary warrior!
+  ]
+  (elseif: $battleVictory >= 7)[
+    **PYRRHIC VICTORY**
+    
+    Your forces win, but at great cost. Many followers fall.
+    
+    (set: $playerArmy to (round: $playerArmy / 2))
+    (set: $gold to $gold + 250)
+    (set: $experience to $experience + 500)
+    (set: $reputation to $reputation + 25)
+  ]
+  (else)[
+    **DEFEAT!**
+    
+    Your forces are overwhelmed. You retreat!
+    
+    (set: $playerArmy to (round: $playerArmy / 3))
+    (set: $health to 50)
+    (set: $experience to $experience + 100)
+    
+    You must gather more strength before attempting another siege!
+  ]
+}
+
+[[Return to World Map]]
+
+:: Attempt Negotiation
+You request a parley with the bandit leader, Kess.
+
+She meets you at a neutral ground, flanked by her lieutenants.
+
+**Kess:** "What do you want, warrior? If you're here for peace, you're wasting my time."
+
+**Options:**
+
+[[Offer to unite under one banner]] — Alliance proposal
+[[Demand their surrender]] — Ultimatum
+[[Propose a truce]] — Avoid bloodshed
+[[Attack her now]] — Betrayal
+
+:: Offer to unite under one banner
+"Think bigger," you say. "Together, we could control this entire region. More power, more wealth, than raiding merchants."
+
+(if: $intelligence >= 7 or $reputation >= 20)[
+  Kess nods slowly. "Interesting. Yes, I like this idea. Let's build an empire together."
+  
+  (set: $followers to $followers + (a: "Bandit Leader Kess"))
+  (set: $followerCount to $followerCount + 1)
+  (set: $playerArmy to $playerArmy + 15)
+  (set: $factionReputation to $factionReputation.put("Bandits", (print: $factionReputation's "Bandits") + 50))
+  
+  Kess and her entire bandit force join your army! +15 fighters!
+]
+(else)[
+  "You're not strong enough to lead me," Kess says with a sneer.
+  
+  Combat begins!
+  
+  (set: $inCombat to true)
+  (set: $currentEnemy to "Bandit Leader Kess")
+  (set: $currentEnemyHealth to 80)
+  (set: $currentEnemyMaxHealth to 80)
+  (set: $currentEnemyStr to 9)
+  (set: $currentEnemyDef to 6)
+  
+  (go-to: "Combat System")
+]
+
+:: Demand their surrender
+"Surrender now, or face annihilation," you command.
+
+Kess laughs. "Bold! But stupid!"
+
+Combat erupts!
+
+(set: $inCombat to true)
+(set: $currentEnemy to "Bandit Leader Kess")
+(set: $currentEnemyHealth to 80)
+(set: $currentEnemyMaxHealth to 80)
+(set: $currentEnemyStr to 9)
+(set: $currentEnemyDef to 6)
+
+(go-to: "Combat System")
+
+:: Propose a truce
+"The forest grows dangerous," you suggest. "Perhaps we should work together rather than against each other."
+
+Kess considers this carefully. "A truce, you say? Interesting. We could both benefit from an alliance against the forest's darkness."
+
+(set: $factionReputation to $factionReputation.put("Bandits", (print: $factionReputation's "Bandits") + 25))
+
+(unless: "Bandit Truce - Temporary Alliance" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Bandit Truce - Work together against forest threats"))
+]
+
+[[Raid Bandit Hideout]]
+
+:: Attack her now
+"Betrayal!" Kess roars as you strike.
+
+Combat begins against unfavorable odds!
+
+(set: $inCombat to true)
+(set: $currentEnemy to "Bandit Leader Kess & Lieutenants")
+(set: $currentEnemyHealth to 120)
+(set: $currentEnemyMaxHealth to 120)
+(set: $currentEnemyStr to 10)
+(set: $currentEnemyDef to 7)
+
+(go-to: "Combat System")
+
+:: Explore Abandoned Ruins
+You discover ancient ruins, crumbling temples of a civilization long forgotten.
+
+**Ruins Investigation:**
+
+You find ancient artifacts, scrolls, and treasures!
+
+(set: $gold to $gold + 100)
+(set: $inventory to $inventory + (a: "Ancient Rune Stone"))
+(set: $experience to $experience + 300)
+(set: $intelligence to $intelligence + 1)
+
+Among the ruins, you find mysterious inscriptions about the forest curse and a ritual of unbinding.
+
+(unless: "Discovered Ancient Rune Lore" is in $completedQuests)[
+  (set: $completedQuests to $completedQuests + (a: "Discovered Ancient Rune Lore - Key to understanding the curse"))
+]
+
+[[Return to World Map]]
