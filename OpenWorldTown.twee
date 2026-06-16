@@ -21,8 +21,13 @@ Open World Town
   (set: $guardWarned to false)
   (set: $oldManMet to false)
   (set: $suspiciousManMet to false)
+  (set: $silasQuestAccepted to false)
   (set: $forestUnlocked to false)
   (set: $houseExplored to false)
+  (set: $coinTaken to false)
+  (set: $noteFound to false)
+  (set: $irisQuestAccepted to false)
+  (set: $treasureItemObtained to false)
   
   (set: $mainQuest to "Find your purpose in this town")
 }
@@ -30,7 +35,7 @@ Open World Town
 (go-to: "Town Square")
 
 :: Town Square
-You awaken in the Town Square of Thornwick, a modest trading town nestled between rolling hills and an ancient forest. The morning sun casts long shadows across the cobblestone plaza. A fountain splashes gently in the center—its water crystal clear—and pigeons peck at scattered breadcrumbs. A street performer tunes a lute nearby, preparing for the day's crowds.
+You stand in the Town Square of Thornwick, a modest trading town nestled between rolling hills and an ancient forest. The morning sun casts long shadows across the cobblestone plaza. A fountain splashes gently in the center, and pigeons peck at scattered breadcrumbs.
 
 **Status:** Day $day | $time | Health: $health% | Gold: $gold gp | Reputation: $reputation
 
@@ -38,7 +43,7 @@ You awaken in the Town Square of Thornwick, a modest trading town nestled betwee
 
 ---
 
-The town awaits your exploration. Where will you venture?
+Where will you venture?
 
 [[→ Market Street]] — The bustling heart of commerce
 [[→ North Gate]] — The forest awaits beyond
@@ -63,15 +68,23 @@ You sit by the fountain, letting the cool mist refresh you. The water feels reju
 (set: $health to (min: 100, $health + 20))
 (set: $time to "Mid-Morning")
 
-As you rest, you notice something glinting beneath the water...
-
-[[Pick it up]] or [[Leave it be]] or [[Return to Town Square]]
+(if: not $coinTaken)[
+  As you rest, you notice something glinting beneath the water...
+  
+  [[Pick it up]] or [[Leave it be]] or [[Return to Town Square]]
+]
+(else)[
+  You relax peacefully by the fountain.
+  
+  [[Return to Town Square]]
+]
 
 :: Pick it up
-You reach into the fountain and retrieve a tarnished silver coin. It feels warm to the touch, despite being submerged.
+You reach into the fountain and retrieve a tarnished silver coin. It feels warm to the touch.
 
 (set: $inventory to $inventory + (a: "Ancient Silver Coin"))
 (set: $gold to $gold + 5)
+(set: $coinTaken to true)
 
 *You've obtained: Ancient Silver Coin and gained 5 gold!*
 
@@ -80,19 +93,21 @@ You reach into the fountain and retrieve a tarnished silver coin. It feels warm 
 :: Leave it be
 You decide the coin is best left undisturbed.
 
+(set: $coinTaken to true)
+
 [[Return to Town Square]]
 
 :: Return to Town Square
 (go-to: "Town Square")
 
 :: Market Street
-The vibrant energy of Market Street engulfs you. Merchants line the cobbled street, shouting their wares. Colorful flags flutter overhead in the breeze. The aroma of fresh bread, spiced leather, and exotic spices fills your senses. Customers haggle with vendors over prices, and street musicians perform for spare coin.
+The vibrant energy of Market Street engulfs you. Merchants line the cobbled street, shouting their wares. Colorful flags flutter overhead. The aroma of fresh bread, spiced leather, and exotic spices fills your senses.
 
 **Locations:**
-• [[Bakery]] — Warmth and the smell of fresh bread
-• [[General Shop]] — Tools, supplies, and mysterious trinkets
+• [[Bakery]] — Warmth and fresh bread
+• [[General Shop]] — Tools and mysterious trinkets
 • [[Suspicious Man]] — A hooded figure watching the crowd
-• [[Food Stall]] — Quick meals and information
+• [[Food Stall]] — Quick meals
 • [[Return to Town Square]]
 
 ---
@@ -100,12 +115,17 @@ The vibrant energy of Market Street engulfs you. Merchants line the cobbled stre
 (set: $time to "Midday")
 
 :: Bakery
-You push open the wooden door. A warm gust of air carries the intoxicating smell of fresh bread. The baker, a plump woman named **Elara**, smiles warmly from behind the counter. Her flour-dusted apron tells the story of an early morning's work. Shelves are stacked with golden loaves, pastries, and sweet rolls.
+You push open the wooden door. A warm gust of air carries the smell of fresh bread. The baker, a woman named **Elara**, smiles warmly from behind the counter.
 
-**Elara says:** "Welcome, wanderer. You look like someone new to our town. Can I help you with something?"
+**Elara says:** "Welcome, wanderer. You look new to our town. Can I help you?"
 
-(set: $bakerMet to true)
-(set: $reputation to $reputation + 1)
+(if: not $bakerMet)[
+  (set: $bakerMet to true)
+  (set: $reputation to $reputation + 1)
+  (unless: "Learn more about the forest and its mysteries" is in $questLog)[
+    (set: $questLog to $questLog + (a: "Learn more about the forest and its mysteries"))
+  ]
+]
 
 [[Talk about the town]]
 [[Ask about the forest]]
@@ -113,20 +133,18 @@ You push open the wooden door. A warm gust of air carries the intoxicating smell
 [[Leave the Bakery]]
 
 :: Talk about the town
-"Thornwick is a good place," Elara muses, kneading dough. "Most folks here are honest. We get travelers through, merchants, the occasional adventurer. The guard keeps us safe, though there's been talk of strange happenings in the forest lately."
+"Thornwick is a good place," Elara muses, kneading dough. "Most folks are honest. We get travelers, merchants, adventurers. The guard keeps us safe, though there's been talk of strange happenings in the forest lately."
 
-She leans in conspiratorially. "Between you and me, the old man in the park—**Thorne**, we call him—might know more than he lets on. And that suspicious fellow who lingers near the square? Never quite trusted him."
-
-(set: $questLog to $questLog + (a: "Learn more about the forest and its mysteries"))
+She leans in conspiratorially. "The old man in the park—**Thorne**—might know more than he lets on. And that suspicious fellow near the square? Never quite trusted him."
 
 [[Ask about the forest]]
 [[Buy a bread roll (5 gp)]]
 [[Leave the Bakery]]
 
 :: Ask about the forest
-Elara's expression darkens. "Ah, the forest. It wasn't always dangerous, from what the old-timers say. But something changed about five years ago. Travelers stopped coming from that direction. Strange lights appear some nights. The guard won't go in anymore, and neither will I."
+Elara's expression darkens. "The forest wasn't always dangerous. But something changed five years ago. Travelers stopped coming from that direction. Strange lights appear some nights."
 
-She glances out the window nervously. "If you're thinking of going in there, be careful. Take supplies, and maybe find someone who knows the way."
+She glances out nervously. "If you're thinking of going in there, be careful. Take supplies."
 
 (unless: $forestUnlocked)[
   (set: $forestUnlocked to true)
@@ -138,10 +156,11 @@ She glances out the window nervously. "If you're thinking of going in there, be 
 
 :: Buy a bread roll (5 gp)
 (if: $gold >= 5)[
-  (set: $gold to $gold - 5)
-  (set: $inventory to $inventory + (a: "Fresh Bread Roll"))
+  (if: not ("Fresh Bread Roll" is in $inventory))[
+    (set: $gold to $gold - 5)
+    (set: $inventory to $inventory + (a: "Fresh Bread Roll"))
+  ]
   (set: $health to (min: 100, $health + 15))
-  
   *You've purchased a fresh bread roll. Delicious!*
 ]
 (else)[
@@ -153,43 +172,34 @@ She glances out the window nervously. "If you're thinking of going in there, be 
 [[Leave the Bakery]]
 
 :: Leave the Bakery
-You thank Elara and step back out into the bustling Market Street.
+You thank Elara and step back out into Market Street.
 
 [[Market Street]]
 
 :: General Shop
-The shop is cramped and cluttered. Shelves overflow with mysterious items: tools of unknown purpose, jars of strange herbs, leather-bound journals, coils of rope, and strange mechanical contraptions. The shopkeeper, a wizened old man named **Garrett**, sits behind the counter, polishing an ornate dagger.
+The shop is cramped and cluttered. Shelves overflow with mysterious items. The shopkeeper, **Garrett**, sits behind the counter, polishing an ornate dagger.
 
-He looks up from his work. "Need something? I've got rare finds if you know what to look for."
+He looks up from his work. "Need something? I've got rare finds."
 
 **Garrett's Inventory:**
 • Rope Coil (10 gp) — Useful for climbing
-• Mysterious Map (25 gp) — Shows an "X" marked in the forest
+• Mysterious Map (25 gp) — Shows an "X" in the forest
 • Healing Potion (15 gp) — Restores 30% health
 • Lantern (20 gp) — Essential for dark places
-• Strange Key (40 gp) — Purpose unknown
 
 [[Ask about the forest]]
-[[Browse his wares]]
+[[Buy Rope Coil (10 gp)]]
+[[Buy Mysterious Map (25 gp)]]
+[[Buy Healing Potion (15 gp)]]
+[[Buy Lantern (20 gp)]]
 [[Leave the General Shop]]
 
 :: Ask about the forest
-Garrett's weathered face becomes grave. "That forest... it's changed, friend. Five years ago, something happened. A blight, a curse, or perhaps something darker. The forest has its own will now. I've got maps for those brave—or foolish—enough to venture in."
+Garrett's weathered face becomes grave. "That forest... it's changed, friend. Five years ago, something happened. A curse, or perhaps something darker."
 
-He slides a worn journal across the counter. "Found this in the ruins of a crashed wagon. The explorer who wrote it was heading into the forest. Never came back."
+He slides a worn journal across the counter. "Found this in a crashed wagon. The explorer who wrote it was heading into the forest. Never came back."
 
 (set: $reputation to $reputation + 1)
-
-[[Browse his wares]]
-[[Leave the General Shop]]
-
-:: Browse his wares
-(if: $gold >= 10)[
-  "I'll take the [[Rope Coil (10 gp)]] or..." — You can browse different items
-]
-(else)[
-  "I don't have enough gold for much..." — You need more money
-]
 
 [[Buy Rope Coil (10 gp)]]
 [[Buy Mysterious Map (25 gp)]]
@@ -199,55 +209,85 @@ He slides a worn journal across the counter. "Found this in the ruins of a crash
 
 :: Buy Rope Coil (10 gp)
 (if: $gold >= 10)[
-  (set: $gold to $gold - 10)
-  (set: $inventory to $inventory + (a: "Rope Coil"))
-  Garrett nods approvingly. "Good choice. That'll come in handy."
+  (if: not ("Rope Coil" is in $inventory))[
+    (set: $gold to $gold - 10)
+    (set: $inventory to $inventory + (a: "Rope Coil"))
+    Garrett nods approvingly. "Good choice. That'll come in handy."
+  ]
+  (else)[
+    "You already have that item."
+  ]
 ]
 (else)[
   "Not enough gold, friend."
 ]
 
-[[Browse his wares]]
+[[Buy Mysterious Map (25 gp)]]
+[[Buy Healing Potion (15 gp)]]
+[[Buy Lantern (20 gp)]]
 [[Leave the General Shop]]
 
 :: Buy Mysterious Map (25 gp)
 (if: $gold >= 25)[
-  (set: $gold to $gold - 25)
-  (set: $inventory to $inventory + (a: "Mysterious Map"))
-  Garrett grins mysteriously. "Now you're thinking like an adventurer. That map shows the way to something important. What it is... well, you'll have to discover that yourself."
-  (set: $questLog to $questLog + (a: "Follow the map marked with X in the forest"))
+  (if: not ("Mysterious Map" is in $inventory))[
+    (set: $gold to $gold - 25)
+    (set: $inventory to $inventory + (a: "Mysterious Map"))
+    Garrett grins mysteriously. "That map shows the way to something important. Discover it yourself."
+    (unless: "Follow the map marked with X in the forest" is in $questLog)[
+      (set: $questLog to $questLog + (a: "Follow the map marked with X in the forest"))
+    ]
+  ]
+  (else)[
+    "You already have that map."
+  ]
 ]
 (else)[
   "You need 25 gold for that. Come back when you've earned more."
 ]
 
-[[Browse his wares]]
+[[Buy Rope Coil (10 gp)]]
+[[Buy Healing Potion (15 gp)]]
+[[Buy Lantern (20 gp)]]
 [[Leave the General Shop]]
 
 :: Buy Healing Potion (15 gp)
 (if: $gold >= 15)[
-  (set: $gold to $gold - 15)
-  (set: $inventory to $inventory + (a: "Healing Potion"))
-  "Wise purchase," Garrett says. "You never know when you'll need it."
+  (if: not ("Healing Potion" is in $inventory))[
+    (set: $gold to $gold - 15)
+    (set: $inventory to $inventory + (a: "Healing Potion"))
+    "Wise purchase," Garrett says. "You never know when you'll need it."
+  ]
+  (else)[
+    "You already have one of those."
+  ]
 ]
 (else)[
   "Need 15 gold for that one."
 ]
 
-[[Browse his wares]]
+[[Buy Rope Coil (10 gp)]]
+[[Buy Mysterious Map (25 gp)]]
+[[Buy Lantern (20 gp)]]
 [[Leave the General Shop]]
 
 :: Buy Lantern (20 gp)
 (if: $gold >= 20)[
-  (set: $gold to $gold - 20)
-  (set: $inventory to $inventory + (a: "Lantern"))
-  "You'll want this if you're going into dark places," Garrett warns seriously.
+  (if: not ("Lantern" is in $inventory))[
+    (set: $gold to $gold - 20)
+    (set: $inventory to $inventory + (a: "Lantern"))
+    "You'll want this if you're going into dark places," Garrett warns seriously.
+  ]
+  (else)[
+    "You already have a lantern."
+  ]
 ]
 (else)[
   "That's 20 gold. You'll have to earn more."
 ]
 
-[[Browse his wares]]
+[[Buy Rope Coil (10 gp)]]
+[[Buy Mysterious Map (25 gp)]]
+[[Buy Healing Potion (15 gp)]]
 [[Leave the General Shop]]
 
 :: Leave the General Shop
@@ -256,67 +296,67 @@ You step back out into the busy market street.
 [[Market Street]]
 
 :: Suspicious Man
-A tall, cloaked figure leans against a merchant's stall. His face is hidden in shadow, but you catch glimpses of sharp features and keen, calculating eyes. He watches the crowd with the intensity of a hawk surveying prey.
+A tall, cloaked figure leans against a merchant's stall. His face is hidden in shadow. He watches the crowd with the intensity of a hawk.
 
 As you approach, he turns his gaze toward you.
 
 "You're new," he says, his voice like gravel. "I don't recognize you from the town."
 
-(set: $suspiciousManMet to true)
-(set: $reputation to $reputation + 1)
+(if: not $suspiciousManMet)[
+  (set: $suspiciousManMet to true)
+  (set: $reputation to $reputation + 1)
+]
 
 [[Ask who he is]]
 [[Ask about the forest]]
-[[Accuse him of something]]
 [[Walk away]]
 
 :: Ask who he is
-"I am called **Silas**," he replies coolly. "I work in... acquisition. I find things that are lost. I trade in goods that are hard to come by. And I keep an ear to the ground about what happens in this town."
+"I am called **Silas**," he replies coolly. "I work in... acquisition. I find things that are lost. I trade in goods that are hard to come by."
 
 He eyes you carefully. "You seem like someone who might be useful. Interested in making some extra gold?"
 
-[[Accept his proposition]]
-[[Decline politely]]
 [[Ask what he wants]]
+[[Accept his proposition]]
+[[Walk away]]
 
 :: Ask about the forest
-Silas's expression hardens. "The forest is not a topic I discuss lightly. But I'll tell you this—there's something valuable in there. Something that could change everything. Someone will find it eventually. Might as well be someone I know."
+Silas's expression hardens. "The forest is not a topic I discuss lightly. But I'll tell you this—there's something valuable in there. Something that could change everything."
 
-He pulls out a small, intricately carved box. "This contains a clue to something... significant. If you can retrieve what's inside the forest, I'll pay handsomely."
-
-(set: $questLog to $questLog + (a: "Find out what Silas wants from the forest"))
+He pulls out a small, intricately carved box. "If you can retrieve what's hidden in the forest, I'll pay handsomely."
 
 [[Ask what he wants]]
 [[Accept his proposition]]
+[[Walk away]]
+
+:: Ask what he wants
+"I want you to find something for me," Silas explains. "In the forest, there's an artifact. An ancient stone with strange markings. Bring it to me, and you'll be rewarded."
+
+He looks at you intensely. "100 gold. Do we have a deal?"
+
+[[Accept his proposition]]
 [[Decline politely]]
-
-:: Accuse him of something
-"Stealing? Smuggling?" You narrow your eyes.
-
-Silas laughs—a sound like dry, cracking leather. "Careful, wanderer. Accusations are dangerous. But I like your spirit. Perhaps we should talk business instead."
-
-[[Ask what he wants]]
 [[Walk away]]
 
 :: Accept his proposition
-"Excellent," Silas says, a thin smile crossing his face. "There's a certain item hidden in the forest. Bring it to me, and I'll pay you 100 gold. No questions asked."
+(if: not $silasQuestAccepted)[
+  (set: $silasQuestAccepted to true)
+  "Excellent," Silas says with a thin smile. "Bring me the ancient stone. I'll be waiting."
+  (unless: "Find the artifact for Silas (Reward: 100 gold)" is in $questLog)[
+    (set: $questLog to $questLog + (a: "Find the artifact for Silas (Reward: 100 gold)"))
+  ]
+  (set: $reputation to $reputation + 1)
+]
+(else)[
+  Silas nods. "Good to see you again. Any luck finding that artifact?"
+]
 
-(set: $questLog to $questLog + (a: "Find Silas's mysterious item in the forest (Reward: 100 gold)"))
-(set: $reputation to $reputation + 2)
-
-[[Ask what he wants]]
+[[Ask about the forest]]
 [[Walk away]]
 
 :: Decline politely
 "Your loss," Silas shrugs, turning back to the crowd.
 
-[[Walk away]]
-
-:: Ask what he wants
-"I want you to find something for me," Silas explains. "In the forest, there's an artifact. An ancient stone with strange markings. Bring it to me, and you'll be rewarded beyond measure."
-
-[[Accept his proposition]]
-[[Decline politely]]
 [[Walk away]]
 
 :: Walk away
@@ -325,21 +365,19 @@ You step away from Silas, unsettled but intrigued.
 [[Market Street]]
 
 :: Food Stall
-A cheerful vendor tends to a small stall laden with fresh pastries, roasted vegetables, and hot soup. Delicious aromas waft through the air.
+A cheerful vendor tends to a small stall laden with fresh pastries, roasted vegetables, and hot soup.
 
 "Fresh food, friend!" she calls out. "Warm your belly and sharpen your mind!"
 
 [[Buy Hearty Soup (8 gp)]] — Restores 20 health
 [[Buy Roasted Vegetables (6 gp)]] — Restores 10 health
 [[Buy Pastry (4 gp)]] — Restores 5 health
-[[Chat with the vendor]]
 [[Return to Market Street]]
 
 :: Buy Hearty Soup (8 gp)
 (if: $gold >= 8)[
   (set: $gold to $gold - 8)
   (set: $health to (min: 100, $health + 20))
-  (set: $inventory to $inventory + (a: "Warm Soup"))
   "Enjoy, friend!"
 ]
 (else)[
@@ -348,7 +386,6 @@ A cheerful vendor tends to a small stall laden with fresh pastries, roasted vege
 
 [[Buy Roasted Vegetables (6 gp)]]
 [[Buy Pastry (4 gp)]]
-[[Chat with the vendor]]
 [[Return to Market Street]]
 
 :: Buy Roasted Vegetables (6 gp)
@@ -363,7 +400,6 @@ A cheerful vendor tends to a small stall laden with fresh pastries, roasted vege
 
 [[Buy Hearty Soup (8 gp)]]
 [[Buy Pastry (4 gp)]]
-[[Chat with the vendor]]
 [[Return to Market Street]]
 
 :: Buy Pastry (4 gp)
@@ -378,29 +414,22 @@ A cheerful vendor tends to a small stall laden with fresh pastries, roasted vege
 
 [[Buy Hearty Soup (8 gp)]]
 [[Buy Roasted Vegetables (6 gp)]]
-[[Chat with the vendor]]
-[[Return to Market Street]]
-
-:: Chat with the vendor
-"People come and go through this town," she muses while preparing food. "But lately, fewer are passing through. The forest has people scared. But there's always someone brave or foolish enough to try their luck."
-
-[[Buy Hearty Soup (8 gp)]]
-[[Buy Roasted Vegetables (6 gp)]]
-[[Buy Pastry (4 gp)]]
 [[Return to Market Street]]
 
 :: Return to Market Street
 (go-to: "Market Street")
 
 :: North Gate
-The North Gate stands imposing and ancient, its wooden frame weathered by centuries of wind and rain. Beyond it, the forest looms like a living wall—trees so tall they seem to touch the sky, their canopy so thick that even midday light struggles to penetrate. The air itself feels different here, cooler and somehow alive with an electric charge.
+The North Gate stands imposing and ancient. Beyond it, the forest looms like a living wall—trees so tall they seem to touch the sky, their canopy so thick that even midday light struggles to penetrate.
 
-A grizzled guard in armor stands at attention. His name is **Aldric**, and his weathered face speaks of decades of service. His hand rests on his sword hilt, and his eyes constantly scan the forest.
+A grizzled guard in armor stands at attention. His name is **Aldric**, and his weathered face speaks of decades of service.
 
 "Halt," he says, not unkindly. "You look like you're thinking about heading into those woods."
 
-(set: $guardWarned to true)
-(set: $reputation to $reputation + 1)
+(if: not $guardWarned)[
+  (set: $guardWarned to true)
+  (set: $reputation to $reputation + 1)
+]
 
 [[Ask about the forest]]
 [[Ask why it's dangerous]]
@@ -409,31 +438,37 @@ A grizzled guard in armor stands at attention. His name is **Aldric**, and his w
 [[Return to Town Square]]
 
 :: Ask about the forest
-Aldric takes a long breath. "The forest wasn't always like this. Five years ago, something changed. An old expedition went in, led by a scholar named **Marcus**. He was looking for ancient ruins, an old library supposedly hidden deep within. His team never returned."
+Aldric takes a long breath. "The forest wasn't always like this. Five years ago, something changed. An old expedition went in, led by a scholar named **Marcus**. He was looking for ancient ruins. His team never returned."
 
-He gazes into the darkness. "After that, the forest became... hostile. We've sent patrols, but they all come back traumatized, speaking of shadows that move on their own, and whispers that drive men mad."
+He gazes into the darkness. "After that, the forest became... hostile. We've sent patrols, but they all come back traumatized."
 
-(set: $questLog to $questLog + (a: "Discover what happened to Marcus and his expedition"))
+(unless: "Discover what happened to Marcus and his expedition" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Discover what happened to Marcus and his expedition"))
+]
 
 [[Ask why it's dangerous]]
 [[Ask if there's a way in]]
 [[Try to convince him to let you pass]]
+[[Return to Town Square]]
 
 :: Ask why it's dangerous
-"Beasts," Aldric says flatly. "Not like normal creatures. These things have an intelligence, a malevolence. We've lost good soldiers to whatever lives in there now."
+"Beasts," Aldric says flatly. "Not like normal creatures. These things have intelligence and malevolence. We've lost good soldiers."
 
-He looks at you seriously. "The forest has a guardian, or perhaps a curse. I don't know which. But I know that anyone who goes in unprepared doesn't come out."
+He looks at you seriously. "The forest has a guardian, or perhaps a curse. Anyone who goes in unprepared doesn't come out."
 
 [[Ask about the forest]]
 [[Ask if there's a way in]]
 [[Try to convince him to let you pass]]
+[[Return to Town Square]]
 
 :: Ask if there's a way in
-"There is one path," Aldric admits reluctantly. "The old forest road, maintained by the town decades ago. It's overgrown now, but if you follow the stone markers—ancient things carved with symbols—you can find your way deeper in."
+"There is one path," Aldric admits reluctantly. "The old forest road. It's overgrown now, but if you follow the stone markers—ancient things carved with symbols—you can find your way deeper in."
 
-He points toward the forest. "Follow the silver stones. They'll take you to the ruin of the old observation tower. From there, if you're lucky, you might make it to the center."
+He points toward the forest. "Follow the silver stones. They'll take you to the old observation tower."
 
-(set: $questLog to $questLog + (a: "Find the old forest road marked with silver stones"))
+(unless: "Find the old forest road marked with silver stones" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Find the old forest road marked with silver stones"))
+]
 
 [[Ask about the forest]]
 [[Try to convince him to let you pass]]
@@ -442,7 +477,7 @@ He points toward the forest. "Follow the silver stones. They'll take you to the 
 :: Try to convince him to let you pass
 Aldric watches you for a long moment. "You're brave, I'll give you that. Or foolish. Most likely both."
 
-He steps aside slightly. "I can't stop you—the gates aren't locked. But hear this: the forest will test you. It will show you fears and offer you temptations. Stay true to your purpose, and you might survive. Lose yourself, and you'll become one of the lost souls in there."
+He steps aside slightly. "I can't stop you—the gates aren't locked. But hear this: the forest will test you. Stay true to your purpose, and you might survive."
 
 (set: $reputation to $reputation + 2)
 
@@ -457,25 +492,22 @@ You push open the heavy gates. The forest looms before you, vast and primordial.
 [[The Ancient Forest Path]]
 
 :: The Ancient Forest Path
-You step into the forest. Immediately, the sounds of the town fade. The trees are impossibly old, their bark thick and gnarled like the skin of ancient creatures. Moss and fungus cover rotting logs. The canopy is so thick that midday light becomes twilight.
+You step into the forest. Immediately, the sounds of the town fade. The trees are impossibly old, their bark thick and gnarled. Moss and fungus cover rotting logs.
 
-You notice the forest road—barely visible beneath centuries of overgrowth—and the first silver stone, carved with mysterious symbols that seem to pulse faintly with an inner light.
+You notice the forest road—barely visible beneath centuries of overgrowth—and the first silver stone, carved with mysterious symbols.
 
-As you walk, you hear sounds. Whispers on the wind. The crunch of unseen footsteps. The distant cry of something large and unseen.
+As you walk, you hear sounds. Whispers on the wind. Unseen footsteps. The distant cry of something large.
 
 The forest is testing you.
 
 [[Follow the silver stone markers]] — The safe path
 [[Venture off the path]] — The mysterious route
-[[Rest and prepare]] — Gather your strength
 [[Return to town]] — Safety awaits
 
 :: Follow the silver stone markers
-(set: $health to $health - 10)
+(set: $health to (max: 0, $health - 10))
 
-You follow the silver stones, each one leading deeper into the forest. The markers are your guide, your anchor against the madness of this place.
-
-After hours of walking, you discover something extraordinary—the old observation tower, covered in vines and crumbling with age. But behind it, you see something else: an ancient archway of stone, clearly not natural, clearly not accidental.
+You follow the silver stones, each one leading deeper. After hours of walking, you discover something extraordinary—the old observation tower, covered in vines and crumbling with age. Behind it stands an ancient archway of stone.
 
 **You've found the Gateway to the Old Ruins.**
 
@@ -484,16 +516,21 @@ After hours of walking, you discover something extraordinary—the old observati
 [[Return to town]]
 
 :: Investigate the archway
-You approach the archway cautiously. It's carved with the same symbols as the silver stones, but far more intricate. In the center, there's a lock... but no keyhole you can see.
+You approach the archway cautiously. It's carved with the same symbols as the silver stones, but far more intricate. In the center, there's a lock with no visible keyhole.
 
 Suddenly, you remember the Ancient Silver Coin you found in the fountain. You pull it out, and it glows with the same light as the stones.
 
 (if: "Ancient Silver Coin" is in $inventory)[
-  The coin slides perfectly into a hidden slot in the archway. The stone glows brilliantly, and with a deep rumble, the archway opens, revealing a passage into the earth below.
+  The coin slides perfectly into a hidden slot. The stone glows brilliantly, and with a deep rumble, the archway opens, revealing a passage into the earth below.
   
   **You've unlocked the passage to the Ancient Library!**
-  (set: $questLog to $questLog + (a: "Explore the Ancient Library"))
-  (set: $completedQuests to $completedQuests + (a: "Opened the Gateway to the Old Ruins"))
+  
+  (unless: "Explore the Ancient Library" is in $questLog)[
+    (set: $questLog to $questLog + (a: "Explore the Ancient Library"))
+  ]
+  (unless: "Opened the Gateway to the Old Ruins" is in $completedQuests)[
+    (set: $completedQuests to $completedQuests + (a: "Opened the Gateway to the Old Ruins"))
+  ]
   
   [[Enter the Library]]
 ]
@@ -506,13 +543,13 @@ Suddenly, you remember the Ancient Silver Coin you found in the fountain. You pu
 
 :: Enter the Library
 (set: $time to "Evening")
-(set: $health to $health - 10)
+(set: $health to (max: 0, $health - 10))
 
 You descend into darkness. Your footsteps echo on ancient stone. The air grows warmer, and a faint blue light emanates from within.
 
-You emerge into a vast underground chamber. Books line endless shelves. At the center stands a stone pedestal, and upon it rests a scroll of incredible age. Behind the pedestal, you see a skeleton—the remains of **Marcus**, the missing scholar.
+You emerge into a vast underground chamber. Books line endless shelves. At the center stands a stone pedestal with a scroll of incredible age. Behind it, you see a skeleton—the remains of **Marcus**, the missing scholar.
 
-Next to the skeleton is a journal, its pages filled with frantic notes about "the curse," "the stone's power," and "the ritual that went wrong."
+Next to the skeleton is a journal filled with frantic notes about "the curse," "the stone's power," and "the ritual that went wrong."
 
 [[Read Marcus's Journal]]
 [[Take the ancient scroll]]
@@ -521,43 +558,56 @@ Next to the skeleton is a journal, its pages filled with frantic notes about "th
 :: Read Marcus's Journal
 You carefully open the journal. The entries tell a tragic story:
 
-*"Day 1: We've found the library! It's magnificent. The knowledge here could change everything."*
+*"Day 1: We've found the library!"*
+*"Day 7: We've found an ancient stone of immense power."*
+*"Day 12: Something went wrong. The forest itself has awakened."*
+*"Day 15: I'm the only one left. I can't leave. This journal is my legacy."*
 
-*"Day 7: We've found something... a stone, ancient beyond measure. It pulses with power."*
+(if: not ("Marcus's Journal" is in $inventory))[
+  (set: $inventory to $inventory + (a: "Marcus's Journal"))
+]
 
-*"Day 12: Marcus attempted to use the stone to unlock deeper secrets. Something went wrong. The forest itself seems to have awakened. My companions are... changing."*
+(unless: "Discover the truth about the curse" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Discover the truth about the curse"))
+]
 
-*"Day 15: I'm the only one left. The stone's power is spreading. Marcus is gone, consumed by the light. I can't leave—the forest won't let me. This journal will be my legacy."*
-
-The final entry is barely legible, as if written by trembling hands.
-
-(set: $questLog to $questLog + (a: "Discover the truth about the curse"))
-(set: $inventory to $inventory + (a: "Marcus's Journal"))
 (set: $reputation to $reputation + 3)
 
 [[Take the ancient scroll]]
-[[Return to town with the knowledge]]
+[[Pay respects and leave]]
 
 :: Take the ancient scroll
 You carefully lift the scroll from the pedestal. It's warm to the touch, and ancient symbols glow softly on its surface. The scroll describes an ancient ritual—a way to bind the curse and restore the forest to peace.
 
-(set: $inventory to $inventory + (a: "Scroll of Unbinding"))
-(set: $questLog to $questLog + (a: "Perform the Unbinding Ritual to free the forest"))
-(set: $completedQuests to $completedQuests + (a: "Discovered the truth in the Ancient Library"))
+(if: not ("Scroll of Unbinding" is in $inventory))[
+  (set: $inventory to $inventory + (a: "Scroll of Unbinding"))
+  (set: $treasureItemObtained to true)
+]
 
-[[Return to town with the knowledge]]
+(unless: "Perform the Unbinding Ritual to free the forest" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Perform the Unbinding Ritual to free the forest"))
+]
+
+(unless: "Discovered the truth in the Ancient Library" is in $completedQuests)[
+  (set: $completedQuests to $completedQuests + (a: "Discovered the truth in the Ancient Library"))
+]
+
 [[Perform the ritual here]]
+[[Return to town with the knowledge]]
 
 :: Perform the ritual here
-(set: $health to $health - 20)
+(set: $health to (max: 0, $health - 20))
 
-You unfurl the scroll and begin to read the ancient words aloud. Your voice echoes through the chamber. The stone beneath your feet begins to glow, brighter and brighter, until light fills the entire cavern.
+You unfurl the scroll and begin to read the ancient words aloud. Your voice echoes through the chamber. The stone beneath your feet begins to glow, brighter and brighter.
 
-Reality seems to shimmer. The curse unravels. The forest screams, a sound like a thousand voices crying out in pain and then, finally, relief.
+Reality seems to shimmer. The curse unravels. When the light fades, silence returns.
 
-When the light fades, silence returns. The curse is broken.
+**The curse is broken. The forest is free.**
 
-(set: $completedQuests to $completedQuests + (a: "Performed the Unbinding Ritual"))
+(unless: "Performed the Unbinding Ritual" is in $completedQuests)[
+  (set: $completedQuests to $completedQuests + (a: "Performed the Unbinding Ritual"))
+]
+
 (set: $questLog to $questLog - (a: "Perform the Unbinding Ritual to free the forest"))
 (set: $reputation to $reputation + 10)
 
@@ -573,9 +623,11 @@ You emerge from the forest as dusk falls, carrying knowledge that could save you
 (go-to: "Town Square")
 
 :: Pay respects and leave
-You bow respectfully before Marcus's remains, grateful for his sacrifice and the knowledge he paid for with his life.
+You bow respectfully before Marcus's remains, grateful for his sacrifice.
 
-(set: $inventory to $inventory + (a: "Marcus's Journal"))
+(if: not ("Marcus's Journal" is in $inventory))[
+  (set: $inventory to $inventory + (a: "Marcus's Journal"))
+]
 
 [[Return to town]]
 
@@ -594,43 +646,44 @@ In the morning, you'll decide what to do.
 [[Return to town]]
 
 :: Venture off the path
-(set: $health to $health - 20)
+(set: $health to (max: 0, $health - 20))
 
-You leave the marked path, following your instincts deeper into the forest. Almost immediately, you sense you've made a mistake.
+You leave the marked path, following your instincts deeper. The trees close in. You hear whispers and see shapes moving in the darkness.
 
-The trees close in. The shadows deepen. You hear whispers, and you see shapes moving in the darkness—shapes that shouldn't exist.
-
-After what feels like hours of wandering, you stumble into a clearing where a massive stone statue stands—ancient and covered in moss. At its base, you find something glinting: a key made of crystal.
+After what feels like hours, you stumble into a clearing where a massive stone statue stands. At its base, you find something glinting: a key made of crystal.
 
 [[Take the key]]
 [[Leave the clearing and find the path]]
 
 :: Take the key
-(set: $inventory to $inventory + (a: "Crystal Key"))
-(set: $reputation to $reputation + 2)
-
-The moment you touch it, you understand—this key belongs to something ancient, something important.
+(if: not ("Crystal Key" is in $inventory))[
+  (set: $inventory to $inventory + (a: "Crystal Key"))
+  (set: $reputation to $reputation + 2)
+  
+  The moment you touch it, you understand—this key belongs to something ancient.
+]
+(else)[
+  You already have the crystal key.
+]
 
 [[Find the path back]]
 
 :: Find the path back
-(set: $health to $health - 10)
+(set: $health to (max: 0, $health - 10))
 
 You manage to find your way back to the silver stone markers.
 
 [[Follow the silver stone markers]]
 
 :: Leave the clearing and find the path
-(set: $health to $health - 5)
+(set: $health to (max: 0, $health - 5))
 
 You carefully back away from the statue and find your way back to the silver stones.
 
 [[Follow the silver stone markers]]
 
 :: Back Alley
-The alley is narrow and dark, squeezed between two old buildings. Water drips from a broken gutter, echoing off wet cobblestones. The smell is unpleasant—a mixture of rotting garbage and something chemical you can't quite identify.
-
-But there's also something intriguing. A door, painted a deep green, stands slightly ajar. Light spills from within.
+The alley is narrow and dark, squeezed between two old buildings. Water drips from a broken gutter. A door, painted deep green, stands slightly ajar.
 
 [[Investigate the sound]]
 [[Knock on the green door]]
@@ -640,13 +693,24 @@ But there's also something intriguing. A door, painted a deep green, stands slig
 :: Investigate the sound
 (set: $reputation to $reputation + 1)
 
-You follow the dripping sound and discover it's coming from a broken pipe. As you examine it, you notice something wedged behind it—a small leather pouch containing 15 gold and a note:
+You follow the dripping sound to a broken pipe. Behind it, you notice a small leather pouch containing 15 gold and a note:
 
 *"For whoever finds this. I'm sorry for what I've done. The curse in the forest... I helped cause it. Forgive me. —M"*
 
-(set: $inventory to $inventory + (a: "Mysterious Note"))
-(set: $gold to $gold + 15)
-(set: $questLog to $questLog + (a: "Discover who left this note and what they meant"))
+(if: not $noteFound)[
+  (if: not ("Mysterious Note" is in $inventory))[
+    (set: $inventory to $inventory + (a: "Mysterious Note"))
+  ]
+  (set: $gold to $gold + 15)
+  (set: $noteFound to true)
+  
+  (unless: "Discover who left this note and what they meant" is in $questLog)[
+    (set: $questLog to $questLog + (a: "Discover who left this note and what they meant"))
+  ]
+]
+(else)[
+  You've already collected this note.
+]
 
 [[Knock on the green door]]
 [[Search the trash]]
@@ -666,18 +730,29 @@ She introduces herself as **Iris**, a hedge witch and keeper of forgotten knowle
 [[Leave]]
 
 :: Ask what she knows about the forest
-"The forest," Iris says solemnly, "is cursed by ambition and greed. A scholar tried to use ancient power, not understanding what he was doing. The forest punished him for it. But the curse can be broken."
+"The forest is cursed by ambition and greed," Iris says solemnly. "A scholar tried to use ancient power. The forest punished him for it. But the curse can be broken."
 
-She slides a small vial across her desk. "This is a potion. It will help you see the truth in the forest, to understand what needs to be done."
+She slides a small vial across her desk. "This potion will help you see the truth in the forest."
 
-(set: $inventory to $inventory + (a: "Iris's Truth Potion"))
-(set: $questLog to $questLog + (a: "Use Iris's potion to see the truth in the forest"))
+(if: not $irisQuestAccepted)[
+  (if: not ("Iris's Truth Potion" is in $inventory))[
+    (set: $inventory to $inventory + (a: "Iris's Truth Potion"))
+  ]
+  (set: $irisQuestAccepted to true)
+  
+  (unless: "Use Iris's potion to see the truth in the forest" is in $questLog)[
+    (set: $questLog to $questLog + (a: "Use Iris's potion to see the truth in the forest"))
+  ]
+]
+(else)[
+  "I hope my potion has helped you see clearly," Iris says mysteriously.
+]
 
 [[Ask what she is]]
 [[Leave]]
 
 :: Ask what she is
-"I am someone who remembers," Iris says mysteriously. "I remember when the forest was beautiful. When the curse didn't exist. I've been waiting for someone brave enough to undo what was done. Perhaps that someone is you."
+"I am someone who remembers," Iris says mysteriously. "I remember when the forest was beautiful. I've been waiting for someone brave enough to undo what was done."
 
 (set: $reputation to $reputation + 1)
 
@@ -690,19 +765,23 @@ You step back out into the alley.
 [[Back Alley]]
 
 :: Search the trash
-(set: $health to $health - 5)
+(set: $health to (max: 0, $health - 5))
 
-You search through refuse and garbage. Mostly you find nothing, but in an old crate, you discover a rusted key and a broken compass.
+You search through refuse and garbage. In an old crate, you discover a rusted key and a broken compass.
 
-(set: $inventory to $inventory + (a: "Rusted Key"))
-(set: $inventory to $inventory + (a: "Broken Compass"))
+(if: not ("Rusted Key" is in $inventory))[
+  (set: $inventory to $inventory + (a: "Rusted Key"))
+]
+(if: not ("Broken Compass" is in $inventory))[
+  (set: $inventory to $inventory + (a: "Broken Compass"))
+]
 
 [[Knock on the green door]]
 [[Investigate the sound]]
 [[Return to Town Square]]
 
 :: Town Park
-The park is a sanctuary of peace within the bustling town. Ancient oaks provide shade, and benches line the walking paths. A small pond reflects the sky, and wildflowers bloom in carefully tended gardens. Few people are present—mostly those seeking quiet.
+The park is a sanctuary of peace. Ancient oaks provide shade, and benches line the walking paths. A small pond reflects the sky, and wildflowers bloom in carefully tended gardens.
 
 Sitting on a weathered bench, watching the water, is an elderly man. His eyes seem to contain centuries of wisdom.
 
@@ -721,31 +800,33 @@ After a while, the old man speaks. "It's a good place for thinking, isn't it?"
 [[Talk to the old man]]
 
 :: Talk to the old man
-The old man introduces himself as **Thorne**, and he claims to be over a hundred years old. His mind, however, is sharp.
+The old man introduces himself as **Thorne**, and he claims to be over a hundred years old. His mind is sharp.
 
-"I remember when the forest was young," he says. "When it was beautiful and safe. I've watched it change, watched it darken. I think something in its heart has been corrupted, and I think you might be the one to fix it."
+"I remember when the forest was young," he says. "When it was beautiful and safe. I think something in its heart has been corrupted, and I think you might be the one to fix it."
 
-(set: $oldManMet to true)
-(set: $reputation to $reputation + 2)
-
-He gives you a small carved token. "When you're in the deepest part of the forest, hold this. It might help you find what you're looking for."
-
-(set: $inventory to $inventory + (a: "Thorne's Token"))
+(if: not $oldManMet)[
+  (set: $oldManMet to true)
+  (set: $reputation to $reputation + 2)
+  
+  (if: not ("Thorne's Token" is in $inventory))[
+    (set: $inventory to $inventory + (a: "Thorne's Token"))
+  ]
+]
 
 [[Ask about the forest's history]]
 [[Ask how he knows about you]]
 [[Return to Town Square]]
 
 :: Ask about the forest's history
-"Five hundred years ago," Thorne begins, "the forest was a paradise. Then came the ambition of men. Scholars and mages tried to unlock its secrets. They found something—an ancient artifact of great power—and they wanted to use it."
+"Five hundred years ago," Thorne begins, "the forest was a paradise. Then came the ambition of men. Scholars and mages tried to unlock its secrets. They found an ancient artifact of great power."
 
-He pauses, lost in memory. "The forest rejected them. It awakened defenses. Most of the explorers died. The few who survived sealed themselves away and never spoke of it again. But the corruption spread, year by year, until five years ago, when a new attempt was made..."
+He pauses, lost in memory. "The forest rejected them. It awakened defenses. But the corruption spread, year by year, until five years ago, when a new attempt was made."
 
 [[Ask how he knows about you]]
 [[Return to Town Square]]
 
 :: Ask how he knows about you
-Thorne smiles. "I know because I've lived long enough to recognize the signs. When someone new arrives in town, I can feel it. And when that someone carries the weight of destiny, I can see it in their eyes. You're here for a reason, whether you know it yet or not."
+Thorne smiles. "I know because I've lived long enough to recognize the signs. When someone new arrives in town, I can feel it. When that someone carries the weight of destiny, I can see it in their eyes. You're here for a reason."
 
 [[Ask about the forest's history]]
 [[Return to Town Square]]
@@ -753,14 +834,16 @@ Thorne smiles. "I know because I've lived long enough to recognize the signs. Wh
 :: Explore the park
 You wander through the park's quiet paths, finding small surprises—a hidden fountain, a grove of ancient trees, a stone monument covered in names.
 
-The names, you realize, are those of people lost to the forest over centuries.
+The names are those of people lost to the forest over centuries.
 
-(set: $questLog to $questLog + (a: "Understand why so many have been lost to the forest"))
+(unless: "Understand why so many have been lost to the forest" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Understand why so many have been lost to the forest"))
+]
 
 [[Return to Town Square]]
 
 :: Your House
-Your small rented home is modest but comfortable. It's a cottage with a small garden out front, a fireplace, and simple furnishings. A window overlooks the town.
+Your small rented home is modest but comfortable. A window overlooks the town.
 
 (set: $houseExplored to true)
 
@@ -773,8 +856,6 @@ What will you do here?
 
 :: Look out the window
 You gaze out over the town of Thornwick, watching the sunset. From here, you can see the market, the north gate, and in the distance, the dark mass of the forest.
-
-It seems to be watching you back.
 
 [[Rest on the bed]]
 [[Leave]]
@@ -793,16 +874,19 @@ You sleep deeply and wake refreshed. A new day awaits.
 You organize your inventory. Current items:
 
 {
-  (for: each _item, ...$inventory)[
-    • _item
+  (if: $inventory's length > 0)[
+    (for: each _item, ...$inventory)[
+      • _item
+    ]
+  ]
+  (else)[
+    (You haven't collected much yet. There's a whole world to explore.)
   ]
 }
 
-Gold: $gold
-
-(if: $inventory's length is 0)[
-  You haven't collected much yet. There's a whole world to explore.
-]
+Gold: $gold gp
+Health: $health%
+Reputation: $reputation
 
 [[Look out the window]]
 [[Rest on the bed]]
@@ -817,9 +901,9 @@ Gold: $gold
 
 *Five years ago, something changed in the forest. A scholar named Marcus led an expedition to find ancient ruins and a legendary artifact of immense power. The expedition disappeared, and the forest became cursed.*
 
-*Now, whispers speak of moving shadows, of creatures that shouldn't exist, of whispers that drive men mad. The townspeople fear the forest. The guard will not venture in. The merchants no longer trade with distant towns.*
+*Now, whispers speak of moving shadows and creatures that shouldn't exist. The townspeople fear the forest. The guard will not venture in.*
 
-*But you have arrived. And perhaps, you are the one meant to break the curse.*
+*But you have arrived. Perhaps you are the one meant to break the curse.*
 
 *Will you be a hero? A treasure hunter? A savior? Or will you become another lost soul in the dark woods?*
 
