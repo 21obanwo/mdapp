@@ -30,6 +30,8 @@ Open World Town
   
   (set: $currentWeapon to "Wooden Sword")
   (set: $currentArmor to "Leather Jacket")
+  (set: $weaponBought to false)
+  (set: $armorBought to false)
   
   (set: $followers to (a:))
   (set: $followerCount to 0)
@@ -39,19 +41,17 @@ Open World Town
   (set: $guardWarned to false)
   (set: $oldManMet to false)
   (set: $suspiciousManMet to false)
-  (set: $silasQuestAccepted to false)
   (set: $forestUnlocked to false)
   (set: $houseExplored to false)
   (set: $coinTaken to false)
-  (set: $noteFound to false)
   (set: $irisQuestAccepted to false)
-  (set: $treasureItemObtained to false)
   (set: $inCombat to false)
   (set: $currentEnemy to "")
   (set: $currentEnemyHealth to 0)
   (set: $currentEnemyMaxHealth to 0)
   (set: $currentEnemyStr to 0)
   (set: $currentEnemyDef to 0)
+  (set: $escapeFromCombat to false)
   
   (set: $factionReputation to (dm:
     "Guards", 0,
@@ -72,7 +72,7 @@ Open World Town
 You stand at the crossroads of destiny. Your legend begins here. Where will you venture?
 
 **Status:** Lvl $level | HP: $health/$maxHealth | Gold: $gold gp | Followers: $followerCount
-**Stats:** STR $strength | AGI $agility | INT $intelligence | DEF $defense | XP: $experience
+**Stats:** STR $strength | AGI $agility | INT $intelligence | DEF $defense | XP: $experience / (2000 * $level)
 
 ---
 
@@ -114,6 +114,9 @@ You stand at the crossroads of destiny. Your legend begins here. Where will you 
     (for: each _q, ...$questLog)[
       • _q
     ]
+  ]
+  (else)[
+    No active quests
   ]
 }
 
@@ -247,24 +250,28 @@ You push open the wooden door. A warm gust of air carries the smell of fresh bre
   (set: $gold to $gold - 3)
   (set: $health to (min: $maxHealth, $health + 15))
   *You eat fresh bread. Delicious!*
+  
+  [[Visit the Bakery]]
 ]
 (else)[
   "I'm sorry, friend. You don't have enough gold."
+  
+  [[Visit the Bakery]]
 ]
-
-[[Visit the Bakery]]
 
 :: Buy Apple Pie (5 gp)
 (if: $gold >= 5)[
   (set: $gold to $gold - 5)
   (set: $health to (min: $maxHealth, $health + 25))
   *You enjoy a delicious apple pie!*
+  
+  [[Visit the Bakery]]
 ]
 (else)[
   "You need 5 gold for that."
+  
+  [[Visit the Bakery]]
 ]
-
-[[Visit the Bakery]]
 
 :: Ask about the area
 "There's a lot happening in the region," Elara says thoughtfully. "Bandits have been attacking merchants. The guards are overwhelmed. And there's talk of ancient magic stirring in the forest."
@@ -282,15 +289,21 @@ You enter a cramped shop filled with weapons, armor, and supplies. **Garrett**, 
 [[Buy Steel Armor (40 gp)]] — +3 Defense
 [[Buy Health Potion (10 gp)]] — Full HP restore
 [[Buy Shield (20 gp)]] — +2 Defense
-[[Sell Items]]
+[[View Inventory to Sell]]
 [[Return to Thornwick Town]]
 
 :: Buy Iron Sword (30 gp)
 (if: $gold >= 30)[
-  (set: $gold to $gold - 30)
-  (set: $currentWeapon to "Iron Sword")
-  (set: $strength to $strength + 2)
-  Garrett nods approvingly. "Good choice."
+  (if: not $weaponBought)[
+    (set: $gold to $gold - 30)
+    (set: $currentWeapon to "Iron Sword")
+    (set: $strength to $strength + 2)
+    (set: $weaponBought to true)
+    Garrett nods approvingly. "Good choice."
+  ]
+  (else)[
+    "You've already bought a weapon from me."
+  ]
 ]
 (else)[
   "You need 30 gold for that blade."
@@ -300,10 +313,16 @@ You enter a cramped shop filled with weapons, armor, and supplies. **Garrett**, 
 
 :: Buy Steel Armor (40 gp)
 (if: $gold >= 40)[
-  (set: $gold to $gold - 40)
-  (set: $currentArmor to "Steel Armor")
-  (set: $defense to $defense + 3)
-  "That'll protect you well," Garrett says.
+  (if: not $armorBought)[
+    (set: $gold to $gold - 40)
+    (set: $currentArmor to "Steel Armor")
+    (set: $defense to $defense + 3)
+    (set: $armorBought to true)
+    "That'll protect you well," Garrett says.
+  ]
+  (else)[
+    "You've already bought armor from me."
+  ]
 ]
 (else)[
   "You need 40 gold for that armor."
@@ -314,9 +333,7 @@ You enter a cramped shop filled with weapons, armor, and supplies. **Garrett**, 
 :: Buy Health Potion (10 gp)
 (if: $gold >= 10)[
   (set: $gold to $gold - 10)
-  (if: not ("Health Potion" is in $inventory))[
-    (set: $inventory to $inventory + (a: "Health Potion"))
-  ]
+  (set: $inventory to $inventory + (a: "Health Potion"))
   "Good for emergencies," Garrett says.
 ]
 (else)[
@@ -329,9 +346,7 @@ You enter a cramped shop filled with weapons, armor, and supplies. **Garrett**, 
 (if: $gold >= 20)[
   (set: $gold to $gold - 20)
   (set: $defense to $defense + 2)
-  (if: not ("Shield" is in $inventory))[
-    (set: $inventory to $inventory + (a: "Shield"))
-  ]
+  (set: $inventory to $inventory + (a: "Shield"))
   "Strong and reliable," Garrett says.
 ]
 (else)[
@@ -340,19 +355,35 @@ You enter a cramped shop filled with weapons, armor, and supplies. **Garrett**, 
 
 [[Visit the General Shop]]
 
-:: Sell Items
+:: View Inventory to Sell
 "What do you want to sell?" Garrett asks.
 
 (if: $inventory's length > 0)[
   You can sell items from your inventory for 50% their value.
   
   (for: each _item, ...$inventory)[
-    [[Sell _item]]
+    (set: _salePrice to (if: _item is "Health Potion" then 5 else if: _item is "Shield" then 10 else 5))
+    [[Sell _item for _salePrice gp]]
   ]
 ]
 (else)[
   You have nothing to sell.
 ]
+
+[[Visit the General Shop]]
+
+:: Sell Health Potion for 5 gp
+(set: $gold to $gold + 5)
+(set: $inventory to $inventory - (a: "Health Potion"))
+"Good doing business with you," Garrett says.
+
+[[Visit the General Shop]]
+
+:: Sell Shield for 10 gp
+(set: $gold to $gold + 10)
+(set: $inventory to $inventory - (a: "Shield"))
+(set: $defense to $defense - 2)
+"Shield's yours for half price then," Garrett says.
 
 [[Visit the General Shop]]
 
@@ -374,26 +405,30 @@ You enter a lively tavern filled with townsfolk, merchants, and sellswords. **Th
   (set: $gold to $gold - 2)
   (set: $strength to $strength + 1)
   You drink a strong ale. You feel invigorated!
+  
+  [[Visit the Tavern]]
 ]
 (else)[
   You can't afford it.
+  
+  [[Visit the Tavern]]
 ]
-
-[[Visit the Tavern]]
 
 :: Hire Sellsword (15 gp)
 (if: $gold >= 15)[
   (set: $gold to $gold - 15)
-  (set: $followers to $followers + (a: "Sellsword"))
+  (set: $followers to $followers + (a: "Sellsword #" + (string: $followerCount + 1)))
   (set: $followerCount to $followerCount + 1)
   (set: $playerArmy to $playerArmy + 1)
   A grizzled mercenary nods. "I'll fight for you."
+  
+  [[Visit the Tavern]]
 ]
 (else)[
   "You don't have enough gold to hire anyone."
+  
+  [[Visit the Tavern]]
 ]
-
-[[Visit the Tavern]]
 
 :: Listen for Rumors
 "Word is, there's a powerful artifact hidden in the ancient forest," the barkeep says. "The bandits are after it too. And I heard the guards are recruiting for an expedition."
@@ -418,6 +453,7 @@ A drunk patron stumbles toward you, fists raised.
 (set: $currentEnemyMaxHealth to 30)
 (set: $currentEnemyStr to 3)
 (set: $currentEnemyDef to 2)
+(set: $escapeFromCombat to false)
 
 (go-to: "Combat System")
 
@@ -477,7 +513,6 @@ You see 5-10 rough-looking bandits around a fire. Some are gambling, others are 
 [[Sneak into the camp]] — High risk, high reward
 [[Challenge them openly]] — Direct combat
 [[Negotiate/Speak with them]] — Diplomacy
-[[Scout and leave]] — Gather information
 [[Return to World Map]]
 
 :: Sneak into the camp
@@ -492,6 +527,8 @@ You move carefully through the shadows. You spot a chest!
   (set: $inventory to $inventory + (a: "Stolen Bandit Supplies"))
   
   You escape undetected, richer and wiser!
+  
+  [[Return to World Map]]
 ]
 (else)[
   A bandit spots you! Combat incoming!
@@ -502,6 +539,7 @@ You move carefully through the shadows. You spot a chest!
   (set: $currentEnemyMaxHealth to 40)
   (set: $currentEnemyStr to 6)
   (set: $currentEnemyDef to 3)
+  (set: $escapeFromCombat to true)
   
   (go-to: "Combat System")
 ]
@@ -521,6 +559,7 @@ The bandit leader, a scarred woman named **Kess**, stands up slowly. She draws h
 (set: $currentEnemyMaxHealth to 60)
 (set: $currentEnemyStr to 8)
 (set: $currentEnemyDef to 5)
+(set: $escapeFromCombat to false)
 
 (go-to: "Combat System")
 
@@ -538,7 +577,7 @@ You approach the fire with your hands raised. The bandits draw weapons, but the 
 [[Leave peacefully]]
 
 :: Persuade them to join your army
-(if: $intelligence >= 6)[
+(if: $intelligence >= 6 or $reputation >= 15)[
   "Listen," you say, "I'm building something bigger than bandit raids. Join me, and we'll have real power."
   
   Kess considers this. "Interesting. I'll follow you. You've got potential."
@@ -554,10 +593,10 @@ You approach the fire with your hands raised. The bandits draw weapons, but the 
 (else)[
   "No chance," Kess says. "You're not strong enough to lead us."
   
-  You need more intelligence or strength to convince them.
+  You need more intelligence or reputation to convince them.
 ]
 
-[[Brigand Camp - Armed Encampment]]
+[[Negotiate/Speak with them]]
 
 :: Offer to help them raid merchants
 "The merchant caravan passes through tomorrow," you offer. "Help me raid it, we split the profits 50/50."
@@ -565,9 +604,11 @@ You approach the fire with your hands raised. The bandits draw weapons, but the 
 Kess grins. "Now that's a deal I like. Let's work together."
 
 (set: $factionReputation to $factionReputation.put("Bandits", (print: $factionReputation's "Bandits") + 10))
-(set: $questLog to $questLog + (a: "Raid Merchant Caravan with Bandits"))
+(unless: "Raid Merchant Caravan with Bandits" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Raid Merchant Caravan with Bandits"))
+]
 
-[[Brigand Camp - Armed Encampment]]
+[[Negotiate/Speak with them]]
 
 :: Ask for information
 "I'm looking for information," you say. "What's happening in the region?"
@@ -578,7 +619,7 @@ Kess leans back. "The forest is stirring with dark magic. Ancient artifact hidde
   (set: $questLog to $questLog + (a: "Merchant Caravan passing through - Raid or Protect opportunity"))
 ]
 
-[[Brigand Camp - Armed Encampment]]
+[[Negotiate/Speak with them]]
 
 :: Insult them (START COMBAT)
 "You're all pathetic!" you shout. "Weak bandits hiding in the hills!"
@@ -591,13 +632,14 @@ Kess's eyes go cold. "You just made a big mistake."
 (set: $currentEnemyMaxHealth to 60)
 (set: $currentEnemyStr to 8)
 (set: $currentEnemyDef to 5)
+(set: $escapeFromCombat to false)
 
 (go-to: "Combat System")
 
 :: Leave peacefully
 You slowly back away from the camp and head back toward the main road.
 
-[[Travel to Brigand Camp]]
+[[Return to World Map]]
 
 :: Combat System
 {
@@ -768,6 +810,14 @@ The enemy's attack glances off your armor! You take only $enemyDamage damage!
   (set: $enemyDamage to $currentEnemyStr - ($defense / 2) + (random: 1, 4))
   (set: $health to (max: 0, $health - $enemyDamage))
   
+  (if: $health <= 0)[
+    **DEFEAT!**
+    (set: $health to 50)
+    (set: $inCombat to false)
+    
+    [[Return to World Map]]
+  ]
+  
   [[Continue Combat]]
 ]
 (else)[
@@ -777,7 +827,7 @@ The enemy's attack glances off your armor! You take only $enemyDamage damage!
 ]
 
 :: Flee
-(if: $agility >= 5)[
+(if: $agility >= 5 or $escapeFromCombat)[
   You quickly turn and run! Your speed allows you to escape!
   
   (set: $inCombat to false)
@@ -788,6 +838,14 @@ The enemy's attack glances off your armor! You take only $enemyDamage damage!
   
   (set: $enemyDamage to $currentEnemyStr - ($defense / 2) + (random: 1, 5))
   (set: $health to (max: 0, $health - $enemyDamage))
+  
+  (if: $health <= 0)[
+    **DEFEAT!**
+    (set: $health to 50)
+    (set: $inCombat to false)
+    
+    [[Return to World Map]]
+  ]
   
   [[Continue Combat]]
 ]
@@ -815,6 +873,31 @@ You step into the ancient forest. The air grows cold, and ancient trees tower ov
 [[Search for the artifact]] — Main quest
 [[Return to World Map]]
 
+:: Venture off into the shadows
+(set: $health to $health - 15)
+(if: $health < 1)[
+  (set: $health to 1)
+]
+
+You venture into the deep forest. After a long journey, you find a hidden clearing with an **Ancient Silver Coin** glowing on a stone pedestal.
+
+(set: $inventory to $inventory + (a: "Ancient Silver Coin"))
+(set: $experience to $experience + 100)
+(set: $coinTaken to true)
+
+The coin feels warm with ancient magic!
+
+[[Return to World Map]]
+
+:: Search for the artifact
+You search the forest for the legendary artifact. After much exploration, you find clues pointing to **the Archway of Ruin** deeper in the forest.
+
+(unless: "Find the Scroll of Unbinding Artifact" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Find the Scroll of Unbinding Artifact in the ancient archway"))
+]
+
+[[Follow the silver stone markers]]
+
 :: Follow the silver stone markers
 The ancient stone markers glow faintly. You follow them deeper into the forest.
 
@@ -829,12 +912,14 @@ After hours of travel, you reach **the Archway of Ruin**.
 You need the **Ancient Silver Coin** to unlock this. Do you have it?
 
 (if: "Ancient Silver Coin" is in $inventory)[
-  The coin glows! The archway opens!
+  The coin glows! The archway opens with a deep rumble!
   
   [[Enter the Ancient Library]]
 ]
 (else)[
-  The archway remains sealed. You need to find the key.
+  The archway remains sealed. You need to find the Ancient Silver Coin to unlock it.
+  
+  Try searching in the deeper forest areas.
   
   [[Return to World Map]]
 ]
@@ -862,6 +947,7 @@ This artifact grants you +5 to all stats and opens new quest lines!
 (set: $strength to $strength + 5)
 (set: $intelligence to $intelligence + 5)
 (set: $defense to $defense + 5)
+(set: $agility to $agility + 2)
 
 (unless: "Obtain the Scroll of Unbinding - Ancient Artifact" is in $completedQuests)[
   (set: $completedQuests to $completedQuests + (a: "Obtain the Scroll of Unbinding - Ancient Artifact"))
@@ -913,30 +999,36 @@ You arrive at a fortified guard outpost. Soldiers train in the courtyard. **Comm
 
 Which contract interests you?
 
-[[Accept Bandit Extermination]] | [[Accept Rescue Merchants]] | [[Accept Monster Hunt]]
+[[Accept Bandit Extermination]] | [[Accept Rescue Merchants]] | [[Accept Monster Hunt]] | [[Visit Northern Outpost]]
 
 :: Accept Bandit Extermination
 You accept the contract. You need to defeat 10 bandits.
 
-(set: $questLog to $questLog + (a: "Bandit Extermination Contract - Kill 10 bandits"))
+(unless: "Bandit Extermination Contract - Kill 10 bandits" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Bandit Extermination Contract - Kill 10 bandits (0/10)"))
+]
 
-This will require multiple combat encounters. Each victory brings you closer to the reward.
+This will require multiple combat encounters. Go back and defeat bandits to progress!
 
-[[Return to World Map]]
+[[Visit Northern Outpost]]
 
 :: Accept Rescue Merchants
 "A merchant caravan is in danger from bandits," Aldric explains. "Ensure they reach the city safely."
 
-(set: $questLog to $questLog + (a: "Rescue Merchant Caravan - Protect them from bandits"))
+(unless: "Rescue Merchant Caravan - Protect them from bandits" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Rescue Merchant Caravan - Protect them from bandits"))
+]
 
-[[Return to World Map]]
+[[Visit Northern Outpost]]
 
 :: Accept Monster Hunt
 "A terrible beast lurks in the deep forest," Aldric says gravely. "Slay it, and you'll earn significant reward and honor."
 
-(set: $questLog to $questLog + (a: "Monster Hunt - Defeat the forest beast"))
+(unless: "Monster Hunt - Defeat the forest beast" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Monster Hunt - Defeat the forest beast"))
+]
 
-[[Return to World Map]]
+[[Visit Northern Outpost]]
 
 :: Train with the Guard
 You spend days training with the guard soldiers. Your skills improve significantly!
@@ -953,7 +1045,9 @@ You feel stronger and more skilled!
 :: Ask about the Bandits
 "The bandits are growing bolder," Aldric says with concern. "Their leader is a woman named Kess. She's gathering followers, possibly planning something big."
 
-(set: $questLog to $questLog + (a: "Investigate Bandit Leader Kess - Determine her intentions"))
+(unless: "Investigate Bandit Leader Kess - Determine her intentions" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Investigate Bandit Leader Kess - Determine her intentions"))
+]
 
 [[Visit Northern Outpost]]
 
@@ -962,7 +1056,9 @@ You feel stronger and more skilled!
 
 "Excellent! We're preparing for a major campaign against the bandits. If we gather enough soldiers and fighters, we can end this threat once and for all!"
 
-(set: $questLog to $questLog + (a: "War Campaign - Recruit fighters and lead an army against the bandits"))
+(unless: "War Campaign - Recruit fighters and lead an army against the bandits" is in $questLog)[
+  (set: $questLog to $questLog + (a: "War Campaign - Recruit fighters and lead an army against the bandits"))
+]
 (set: $influence to $influence + 10)
 
 [[Visit Northern Outpost]]
@@ -989,16 +1085,20 @@ You approach the merchants cautiously. A wealthy-looking merchant named **Yoren*
 
 Yoren smiles. "Excellent! We'll pay 100 gold per successful delivery. And any bandits you defeat, we'll buy loot from you at fair prices."
 
-(set: $questLog to $questLog + (a: "Protect Merchant Caravan - Earn 100 gold per delivery"))
+(unless: "Protect Merchant Caravan - Earn 100 gold per delivery" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Protect Merchant Caravan - Earn 100 gold per delivery"))
+]
 
-[[Find Merchant Caravan]]
+(set: $gold to $gold + 100)
+
+[[Return to World Map]]
 
 :: Propose Trade
 "I'm interested in buying and selling goods," you say.
 
 Yoren nods. "We deal in rare items, weapons, armor. Buy low, sell high. Standard merchant business."
 
-You gain access to rare merchant goods!
+You gain access to rare merchant goods and more trade opportunities!
 
 [[Find Merchant Caravan]]
 
@@ -1013,6 +1113,7 @@ The merchants shout for guards!
 (set: $currentEnemyMaxHealth to 50)
 (set: $currentEnemyStr to 7)
 (set: $currentEnemyDef to 4)
+(set: $escapeFromCombat to false)
 
 (go-to: "Combat System")
 
@@ -1023,7 +1124,9 @@ Yoren leans close. "The forest grows darker each day. The bandits grow bolder. A
 
 "We're also hearing strange things—cults, dark rituals, and whispers of a forest curse being lifted or deepened depending on someone's choice."
 
-(set: $questLog to $questLog + (a: "Investigate the forest curse and the artifact"))
+(unless: "Investigate the forest curse and the artifact" is in $questLog)[
+  (set: $questLog to $questLog + (a: "Investigate the forest curse and the artifact"))
+]
 
 [[Find Merchant Caravan]]
 
@@ -1035,12 +1138,12 @@ You march toward the bandit stronghold. This is a major operation. You'll need s
   
   You have $playerArmy followers. This is enough for a proper siege!
   
-  [[Battle the Bandits]] | [[Attempt Negotiation]]
+  [[Battle the Bandits]] | [[Attempt Negotiation]] | [[Return to World Map]]
 ]
 (else)[
   You don't have enough followers for a siege. You need at least 5 soldiers.
   
-  Return and recruit more followers from the tavern or convince NPC allies to join you.
+  Return and recruit more followers from the tavern or convince NPC allies to join you. You currently have $playerArmy followers.
   
   [[Return to World Map]]
 ]
@@ -1069,6 +1172,8 @@ Your army clashes with the bandit stronghold. The battle rages!
     ]
     
     You are now a legendary warrior!
+    
+    [[Return to World Map]]
   ]
   (elseif: $battleVictory >= 7)[
     **PYRRHIC VICTORY**
@@ -1079,6 +1184,8 @@ Your army clashes with the bandit stronghold. The battle rages!
     (set: $gold to $gold + 250)
     (set: $experience to $experience + 500)
     (set: $reputation to $reputation + 25)
+    
+    [[Return to World Map]]
   ]
   (else)[
     **DEFEAT!**
@@ -1090,10 +1197,10 @@ Your army clashes with the bandit stronghold. The battle rages!
     (set: $experience to $experience + 100)
     
     You must gather more strength before attempting another siege!
+    
+    [[Return to World Map]]
   ]
 }
-
-[[Return to World Map]]
 
 :: Attempt Negotiation
 You request a parley with the bandit leader, Kess.
@@ -1107,12 +1214,12 @@ She meets you at a neutral ground, flanked by her lieutenants.
 [[Offer to unite under one banner]] — Alliance proposal
 [[Demand their surrender]] — Ultimatum
 [[Propose a truce]] — Avoid bloodshed
-[[Attack her now]] — Betrayal
+[[Return to World Map]]
 
 :: Offer to unite under one banner
 "Think bigger," you say. "Together, we could control this entire region. More power, more wealth, than raiding merchants."
 
-(if: $intelligence >= 7 or $reputation >= 20)[
+(if: $intelligence >= 7 or $reputation >= 20 or $followerCount >= 5)[
   Kess nods slowly. "Interesting. Yes, I like this idea. Let's build an empire together."
   
   (set: $followers to $followers + (a: "Bandit Leader Kess"))
@@ -1121,6 +1228,8 @@ She meets you at a neutral ground, flanked by her lieutenants.
   (set: $factionReputation to $factionReputation.put("Bandits", (print: $factionReputation's "Bandits") + 50))
   
   Kess and her entire bandit force join your army! +15 fighters!
+  
+  [[Return to World Map]]
 ]
 (else)[
   "You're not strong enough to lead me," Kess says with a sneer.
@@ -1133,6 +1242,7 @@ She meets you at a neutral ground, flanked by her lieutenants.
   (set: $currentEnemyMaxHealth to 80)
   (set: $currentEnemyStr to 9)
   (set: $currentEnemyDef to 6)
+  (set: $escapeFromCombat to false)
   
   (go-to: "Combat System")
 ]
@@ -1150,6 +1260,7 @@ Combat erupts!
 (set: $currentEnemyMaxHealth to 80)
 (set: $currentEnemyStr to 9)
 (set: $currentEnemyDef to 6)
+(set: $escapeFromCombat to false)
 
 (go-to: "Combat System")
 
@@ -1161,24 +1272,10 @@ Kess considers this carefully. "A truce, you say? Interesting. We could both ben
 (set: $factionReputation to $factionReputation.put("Bandits", (print: $factionReputation's "Bandits") + 25))
 
 (unless: "Bandit Truce - Temporary Alliance" is in $questLog)[
-  (set: $questLog to $questLog + (a: "Bandit Truce - Work together against forest threats"))
+  (set: $questLog to $questLog + (a: "Bandit Truce - Temporary Alliance with Kess"))
 ]
 
-[[Raid Bandit Hideout]]
-
-:: Attack her now
-"Betrayal!" Kess roars as you strike.
-
-Combat begins against unfavorable odds!
-
-(set: $inCombat to true)
-(set: $currentEnemy to "Bandit Leader Kess & Lieutenants")
-(set: $currentEnemyHealth to 120)
-(set: $currentEnemyMaxHealth to 120)
-(set: $currentEnemyStr to 10)
-(set: $currentEnemyDef to 7)
-
-(go-to: "Combat System")
+[[Return to World Map]]
 
 :: Explore Abandoned Ruins
 You discover ancient ruins, crumbling temples of a civilization long forgotten.
